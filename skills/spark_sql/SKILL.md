@@ -213,7 +213,7 @@ Debugging checklist:
 
 ## HDFS and Partitioned Tables
 
-For DDL, partition repair, HDFS inspection commands, data profiling, dirty-data handling, and safe overwrite patterns, read `references/hdfs_hive_operations.md`.
+For DDL, partition repair, HDFS inspection commands, data profiling, dirty-data handling, and safe overwrite patterns, read `/docs/specs/spark_sql_hdfs_hive_operations.md`.
 
 Use SQL against catalog tables when possible instead of hard-coded HDFS paths. If direct paths are necessary, make them explicit and stable:
 
@@ -488,7 +488,7 @@ When producing Spark SQL:
 
 ## References to Consult When Needed
 
-- Local HDFS/Hive operations reference: `references/hdfs_hive_operations.md`
+- Local HDFS/Hive operations reference: `/docs/specs/spark_sql_hdfs_hive_operations.md`
 - Apache Spark SQL Performance Tuning: https://spark.apache.org/docs/latest/sql-performance-tuning.html
 - Apache Spark SQL Syntax: https://spark.apache.org/docs/latest/sql-ref-syntax.html
 - Apache Spark SQL Hints: https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-hints.html
