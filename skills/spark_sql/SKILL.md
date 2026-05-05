@@ -1,6 +1,6 @@
 ---
 name: spark_sql
-description: Use when writing, reviewing, or optimizing production Spark SQL for Hive/lakehouse/HDFS tables, including CTE-heavy queries, joins, windows, partition pruning, insert/overwrite semantics, query hints, statistics, EXPLAIN plans, AQE, skew, and SQL performance diagnostics.
+description: Use when writing, reviewing, debugging, or optimizing production Spark SQL for Hive/lakehouse/HDFS tables, including CTE-heavy queries, joins, windows, partition pruning, insert/overwrite semantics, query hints, statistics, EXPLAIN plans, AQE, skew, materialization, and SQL performance diagnostics.
 ---
 
 # Spark SQL Engineer
@@ -179,15 +179,29 @@ ANALYZE TABLE dwh.fact_events COMPUTE STATISTICS FOR COLUMNS user_id, event_date
 DESCRIBE EXTENDED dwh.fact_events;
 ```
 
+## Error Handling and Debugging
+
+When a Spark SQL query fails, identify whether the failure is analysis-time, planning-time, read-time, or runtime.
+
+Common failure patterns:
+- `AnalysisException`: check unresolved columns/tables, ambiguous column names after joins, missing functions, unsupported SQL syntax, invalid casts, and table-format-specific commands.
+- `OutOfMemoryError` or `GC overhead limit exceeded`: inspect Spark UI stage metrics for spill, peak memory, shuffle read/write, large broadcasts, wide rows, and oversized groups/windows.
+- `Task failed N times`: compare task durations and shuffle read sizes in the Stage View; a few very slow tasks usually means skew, bad input splits, or executor-local resource pressure.
+- `FileNotFoundException` on HDFS: if partitions were added or removed outside Spark, use `MSCK REPAIR TABLE` or `ALTER TABLE ADD/DROP PARTITION` for catalog partition metadata; use `REFRESH TABLE` when Spark metadata or file listings are stale.
+- Permission or path errors: verify the effective user, HDFS ACLs, table location, and whether the query reads a table or a direct path.
+
+Debugging checklist:
+- Run `EXPLAIN FORMATTED` and look for full scans, missing `PartitionFilters`, unexpected `Exchange`, and wrong join strategy.
+- Reduce the query to the smallest failing CTE and validate schemas with `DESCRIBE TABLE`.
+- Check Spark UI SQL and Stage tabs before changing configs.
+- Prefer a query or data-layout fix before increasing executor memory or shuffle partitions.
+
 ## HDFS and Partitioned Tables
 
 Use SQL against catalog tables when possible instead of hard-coded HDFS paths. If direct paths are necessary, make them explicit and stable:
 
 ```sql
-SELECT
-    user_id,
-    event_date,
-    amount
+SELECT user_id, event_date, amount
 FROM parquet.`hdfs:///warehouse/raw/events/event_date=2026-01-01`;
 ```
 
@@ -235,17 +249,12 @@ Use `LEFT SEMI JOIN` for key-based filtering:
 
 ```sql
 WITH selected_users AS (
-    SELECT DISTINCT
-        user_id
+    SELECT DISTINCT user_id
     FROM mart.campaign_users
     WHERE campaign_date = DATE '2026-01-05'
 ),
 events AS (
-    SELECT
-        user_id,
-        event_date,
-        event_type,
-        amount
+    SELECT user_id, event_date, event_type, amount
     FROM raw.events
     WHERE event_date BETWEEN DATE '2026-01-01' AND DATE '2026-01-07'
 )
@@ -262,10 +271,7 @@ LEFT SEMI JOIN selected_users u
 For exclusion, use `LEFT ANTI JOIN`:
 
 ```sql
-SELECT
-    e.user_id,
-    e.event_date,
-    e.amount
+SELECT e.user_id, e.event_date, e.amount
 FROM events e
 LEFT ANTI JOIN blocked_users b
     ON e.user_id = b.user_id;
@@ -278,6 +284,79 @@ Guidelines for complex dataset-driven filters:
 - If the filter dataset also contains date ranges, join on both business key and partition/date range to preserve pruning opportunities.
 - For partitioned fact tables joined to filtered dimension tables, check `EXPLAIN FORMATTED` for partition filters and dynamic partition pruning behavior.
 - Materialize a reused complex filter dataset as a temp view/table when it is referenced by multiple heavy queries.
+
+## Skew Handling
+
+Diagnose skew before adding manual workarounds:
+- In Spark UI Stage View, compare task duration, input size, shuffle read, spill, and records per task.
+- In SQL plans, look for large joins/aggregations on low-cardinality or hot keys.
+- Check key distribution with a bounded aggregation on the suspected key.
+- AQE skew join handling is controlled by `spark.sql.adaptive.skewJoin.enabled` and related thresholds such as `spark.sql.adaptive.skewJoin.skewedPartitionFactor` and `spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes`.
+
+Manual salting can help before or beyond AQE when one join key dominates. Salt only the large/skewed side and expand the small side by the same salt range:
+
+```sql
+WITH skewed_events AS (
+    SELECT
+        user_id,
+        event_date,
+        amount,
+        CAST(PMOD(HASH(event_id), 16) AS INT) AS salt
+    FROM raw.events
+    WHERE event_date = DATE '2026-01-01'
+),
+user_salts AS (
+    SELECT EXPLODE(SEQUENCE(0, 15)) AS salt
+),
+salted_users AS (
+    SELECT
+        u.user_id, u.country, s.salt
+    FROM dwh.users u
+    CROSS JOIN user_salts s
+)
+SELECT
+    e.event_date,
+    u.country,
+    SUM(e.amount) AS revenue
+FROM skewed_events e
+JOIN salted_users u
+    ON e.user_id = u.user_id
+   AND e.salt = u.salt
+GROUP BY e.event_date, u.country;
+```
+
+Use salting sparingly: it increases data volume on the expanded side and should be removed when AQE/data layout fixes are enough.
+
+## Materialization
+
+Materialize when a complex intermediate result is reused, expensive to recompute, or needed to isolate failures.
+
+Use a temp view for readability within one Spark session; it is logical and does not by itself write data:
+
+```sql
+CREATE OR REPLACE TEMP VIEW enriched_events AS
+SELECT
+    e.event_date, e.user_id, u.country, e.amount
+FROM raw.events e
+LEFT JOIN dwh.users u
+    ON e.user_id = u.user_id;
+```
+
+Use CTAS to persist an expensive intermediate result to disk, especially across sessions or jobs:
+
+```sql
+CREATE TABLE tmp.enriched_events
+USING PARQUET
+PARTITIONED BY (event_date)
+AS
+SELECT
+    event_date, user_id, country, amount
+FROM enriched_events;
+```
+
+Use `CACHE TABLE` when the result is reused several times in the same application and fits in cluster memory. Prefer CTAS when the result is too large, reused by other jobs, or should survive executor loss/session end.
+
+Use `CACHE TABLE enriched_events` before repeated reads and `UNCACHE TABLE enriched_events` after the last reuse. `UNCACHE TABLE` releases cached blocks from executor memory, reducing GC pressure for later stages.
 
 ## Hints
 
@@ -360,6 +439,8 @@ Do not:
 - Cross join unless explicitly requested and bounded
 - Put Python/Scala UDF logic into SQL when built-in Spark SQL functions can express it
 - Depend on nondeterministic deduplication without a stable `ORDER BY`
+- Add salting without proving skew and bounding the salt factor
+- Cache large one-time intermediates instead of writing a controlled CTAS or avoiding materialization
 - Hide type conversions; cast explicitly where correctness depends on type
 
 ## Example Query
@@ -407,6 +488,7 @@ When producing Spark SQL:
 - Explain performance-sensitive choices briefly
 - Mention when a feature depends on Spark version, table format, catalog, or lakehouse extensions
 - Preserve HDFS partition pruning and avoid small-file-heavy output layouts
+- Include a debugging path for failures, skew, and memory pressure when relevant
 - Suggest `EXPLAIN`, `ANALYZE TABLE`, or runtime metric checks when performance depends on data distribution
 
 ## References to Consult When Needed
