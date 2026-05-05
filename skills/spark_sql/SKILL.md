@@ -27,35 +27,7 @@ Prefer the `pyspark_etl` skill for DataFrame-heavy pipeline code. Use this skill
 
 ## Query Structure
 
-Use CTEs for complex logic, with names that describe data state:
-
-```sql
-WITH filtered_events AS (
-    SELECT
-        user_id,
-        event_time,
-        event_date,
-        amount
-    FROM raw.events
-    WHERE event_date >= DATE '2026-01-01'
-      AND event_type = 'purchase'
-),
-daily_revenue AS (
-    SELECT
-        event_date,
-        user_id,
-        SUM(amount) AS revenue
-    FROM filtered_events
-    GROUP BY event_date, user_id
-)
-SELECT
-    event_date,
-    user_id,
-    revenue
-FROM daily_revenue;
-```
-
-Rules:
+Use CTEs for complex logic, with names that describe data state. Rules:
 - Avoid `SELECT *` in production queries.
 - Put one selected expression per line in non-trivial queries.
 - Use explicit aliases for derived columns.
@@ -92,31 +64,6 @@ when `event_date` is already a partition column.
 - Use `LEFT SEMI JOIN` for existence checks and `LEFT ANTI JOIN` for exclusion checks.
 - Do not use `DISTINCT` to hide join explosions; fix source duplicates or join keys intentionally.
 
-```sql
-WITH users_dim AS (
-    SELECT
-        user_id,
-        country
-    FROM dwh.users
-    WHERE is_current = TRUE
-),
-joined AS (
-    SELECT
-        e.event_date,
-        u.country,
-        e.amount
-    FROM filtered_events e
-    LEFT JOIN users_dim u
-        ON e.user_id = u.user_id
-)
-SELECT
-    event_date,
-    country,
-    SUM(amount) AS revenue
-FROM joined
-GROUP BY event_date, country;
-```
-
 ## Aggregations and Windows
 
 - Group by the minimal keys needed for the result.
@@ -128,19 +75,14 @@ GROUP BY event_date, country;
 ```sql
 WITH ranked_events AS (
     SELECT
-        user_id,
-        event_time,
-        event_id,
+        user_id, event_time, event_id,
         ROW_NUMBER() OVER (
             PARTITION BY user_id
             ORDER BY event_time DESC NULLS LAST, event_id DESC
         ) AS rn
     FROM raw.events
 )
-SELECT
-    user_id,
-    event_time,
-    event_id
+SELECT user_id, event_time, event_id
 FROM ranked_events
 WHERE rn = 1;
 ```
@@ -177,6 +119,78 @@ SELECT ...;
 ANALYZE TABLE dwh.fact_events COMPUTE STATISTICS;
 ANALYZE TABLE dwh.fact_events COMPUTE STATISTICS FOR COLUMNS user_id, event_date;
 DESCRIBE EXTENDED dwh.fact_events;
+```
+
+## Physical Plan Reading
+
+When reading `EXPLAIN FORMATTED`, look for:
+- `Exchange hashpartitioning`: shuffle; check partition count and keys.
+- `BroadcastHashJoin`: broadcast join; verify the broadcast side is the small side.
+- `SortMergeJoin`: large sorted shuffle join; expected for large inputs, risky with skew.
+- `FileScan`: scan; check `PartitionFilters`, `PushedFilters`, and `ReadSchema`.
+- Two `HashAggregate` nodes: normal partial + final aggregation. One node can mean partial aggregation was not useful or not planned.
+- `CartesianProduct`: cross join; almost always a bug unless explicitly bounded.
+
+For Parquet/ORC scans, confirm column pruning and pushdown:
+
+```text
+PartitionFilters: [event_date = 2026-01-01]
+PushedFilters: [IsNotNull(event_type), EqualTo(event_type,purchase)]
+ReadSchema: struct<user_id:string,amount:decimal(18,2)>
+```
+
+Pushdown blockers include UDFs in `WHERE`, complex `OR` predicates in some connectors, and `NOT IN` subqueries where `LEFT ANTI JOIN` is clearer.
+
+## Shuffle Management
+
+- Size `spark.sql.shuffle.partitions` from post-shuffle data size; a common target is about 128MB per partition.
+- With AQE, set shuffle partitions with headroom and let coalescing reduce tiny partitions.
+- Reduce shuffles by combining compatible aggregations and windows.
+- Reuse the same `PARTITION BY`/`ORDER BY` window specs where possible; different specs can require separate shuffles/sorts.
+
+```sql
+SET spark.sql.shuffle.partitions = 4000;
+SET spark.sql.adaptive.coalescePartitions.enabled = true;
+```
+
+Prefer one aggregation over multiple groupBy + join passes:
+
+```sql
+SELECT user_id, SUM(a) AS sum_a, SUM(b) AS sum_b
+FROM t
+GROUP BY user_id;
+```
+
+## Broadcast Join Tuning
+
+- Default auto-broadcast threshold is often conservative; tune it only with table statistics and executor memory in mind.
+- Set `spark.sql.autoBroadcastJoinThreshold = -1` when bad statistics cause dangerous broadcasts.
+- Use `BROADCAST(dim)` only for relations that are small now and expected to stay small.
+- Broadcast can fail or OOM when stats are stale, the side grows, or the broadcast result exceeds driver/executor limits.
+
+```sql
+SET spark.sql.autoBroadcastJoinThreshold = 52428800;
+
+SELECT /*+ BROADCAST(dim) */ f.user_id, dim.country
+FROM fact_events f
+JOIN dwh.users dim ON f.user_id = dim.user_id;
+```
+
+## Aggregation Optimization
+
+- Filter before aggregation and group by the minimal key set.
+- Prefer `FILTER (WHERE ...)` for conditional metrics instead of repeated scans or verbose `CASE` expressions.
+- Use `GROUPING SETS` for multiple rollup levels in one pass instead of several `UNION ALL` queries.
+- Check for partial + final `HashAggregate` in the plan; high-cardinality groups may reduce the benefit of partial aggregation.
+
+```sql
+SELECT
+    user_id,
+    COUNT(*) FILTER (WHERE event_type = 'purchase') AS purchases,
+    SUM(amount) FILTER (WHERE event_type = 'purchase') AS revenue
+FROM raw.events
+WHERE event_date >= DATE '2026-01-01'
+GROUP BY user_id;
 ```
 
 ## Error Handling and Debugging
@@ -288,10 +302,18 @@ Guidelines for complex dataset-driven filters:
 ## Skew Handling
 
 Diagnose skew before adding manual workarounds:
-- In Spark UI Stage View, compare task duration, input size, shuffle read, spill, and records per task.
+- In Spark UI Stage View, compare max vs median task duration, input size, shuffle read, spill, and records per task.
+- A 5-10x gap between max and median task duration is a strong skew signal.
 - In SQL plans, look for large joins/aggregations on low-cardinality or hot keys.
+- `EXPLAIN FORMATTED` or the Spark UI may show skew join optimization after AQE detects it.
 - Check key distribution with a bounded aggregation on the suspected key.
 - AQE skew join handling is controlled by `spark.sql.adaptive.skewJoin.enabled` and related thresholds such as `spark.sql.adaptive.skewJoin.skewedPartitionFactor` and `spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes`.
+- A partition is skewed when it is both much larger than the median and above the byte threshold; defaults are commonly factor `5` and threshold `256MB`.
+
+```sql
+SET spark.sql.adaptive.enabled = true;
+SET spark.sql.adaptive.skewJoin.enabled = true;
+```
 
 Manual salting can help before or beyond AQE when one join key dominates. Salt only the large/skewed side and expand the small side by the same salt range:
 
@@ -327,6 +349,18 @@ GROUP BY e.event_date, u.country;
 
 Use salting sparingly: it increases data volume on the expanded side and should be removed when AQE/data layout fixes are enough.
 
+## File Layout and Compaction
+
+- Target roughly 128-512MB files for Parquet/ORC/Delta-style analytical tables.
+- Too many small files slow HDFS/S3 listing and create excessive file opens.
+- Use `REBALANCE` with AQE or `REPARTITION(n, keys...)` before writes when output file count matters.
+- For Delta/Iceberg/Hudi, prefer table-format compaction commands when available, such as Delta `OPTIMIZE`.
+
+```sql
+SELECT /*+ REPARTITION(200, event_date) */ event_date, user_id, amount
+FROM filtered_events;
+```
+
 ## Materialization
 
 Materialize when a complex intermediate result is reused, expensive to recompute, or needed to isolate failures.
@@ -354,7 +388,7 @@ SELECT
 FROM enriched_events;
 ```
 
-Use `CACHE TABLE` when the result is reused several times in the same application and fits in cluster memory. Prefer CTAS when the result is too large, reused by other jobs, or should survive executor loss/session end.
+Use `CACHE TABLE` when the result is reused 2+ times in the same application and fits in cluster memory. Check Spark UI Storage for cached fraction. Prefer CTAS when the result is too large, reused by other jobs, or should survive executor loss/session end.
 
 Use `CACHE TABLE enriched_events` before repeated reads and `UNCACHE TABLE enriched_events` after the last reuse. `UNCACHE TABLE` releases cached blocks from executor memory, reducing GC pressure for later stages.
 
@@ -442,42 +476,6 @@ Do not:
 - Add salting without proving skew and bounding the salt factor
 - Cache large one-time intermediates instead of writing a controlled CTAS or avoiding materialization
 - Hide type conversions; cast explicitly where correctness depends on type
-
-## Example Query
-
-```sql
-WITH purchases AS (
-    SELECT
-        user_id,
-        event_date,
-        amount
-    FROM raw.events
-    WHERE event_date BETWEEN DATE '2026-01-01' AND DATE '2026-01-31'
-      AND event_type = 'purchase'
-),
-users_dim AS (
-    SELECT
-        user_id,
-        country
-    FROM dwh.users
-    WHERE is_current = TRUE
-),
-revenue AS (
-    SELECT
-        p.event_date,
-        u.country,
-        SUM(p.amount) AS revenue
-    FROM purchases p
-    LEFT JOIN users_dim u
-        ON p.user_id = u.user_id
-    GROUP BY p.event_date, u.country
-)
-SELECT
-    event_date,
-    country,
-    revenue
-FROM revenue;
-```
 
 ## Output Expectations
 
