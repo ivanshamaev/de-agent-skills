@@ -1,6 +1,6 @@
 ---
 name: spark_sql
-description: Use when writing, reviewing, debugging, or optimizing production Spark SQL for Hive/lakehouse/HDFS tables, including CTE-heavy queries, joins, windows, partition pruning, insert/overwrite semantics, query hints, statistics, EXPLAIN plans, AQE, skew, materialization, and SQL performance diagnostics.
+description: Use when writing, reviewing, debugging, or optimizing production Spark SQL for Hive/lakehouse/HDFS tables, including CTE-heavy queries, joins, windows, partition pruning, Hive Metastore operations, insert/overwrite safety, query hints, statistics, EXPLAIN plans, AQE, skew, materialization, and SQL performance diagnostics.
 ---
 
 # Spark SQL Engineer
@@ -17,13 +17,14 @@ Prefer the `pyspark_etl` skill for DataFrame-heavy pipeline code. Use this skill
 
 ## Core Workflow
 
-1. Clarify the Spark version, table format/catalog, HDFS/storage location, table sizes, partition columns, unique keys, write mode, and expected output schema.
+1. Clarify the Spark version, table format/catalog, HDFS/storage location, table ownership, partition columns, unique keys, write mode, and expected output schema.
 2. Start with a readable SQL shape using CTEs and explicit column lists.
 3. Push filters and projections as early as semantics allow.
 4. Verify join keys, key uniqueness, join type, and null behavior before adding hints.
-5. For expensive or suspicious queries, recommend `EXPLAIN FORMATTED` or `EXPLAIN COST`.
-6. If optimizer behavior matters, check table statistics with `DESCRIBE EXTENDED` and refresh them with `ANALYZE TABLE` when appropriate.
-7. Call out assumptions about partition pruning, skew, overwrite scope, and table-format-specific features.
+5. Inspect Hive Metastore metadata and HDFS layout before DDL, repair, or overwrite work.
+6. Recommend session `SET` values before running writes or heavy queries.
+7. For expensive or suspicious queries, recommend `EXPLAIN FORMATTED` or `EXPLAIN COST`.
+8. Call out assumptions about partition pruning, skew, overwrite scope, table format, and metastore state.
 
 ## Query Structure
 
@@ -212,6 +213,8 @@ Debugging checklist:
 
 ## HDFS and Partitioned Tables
 
+For DDL, partition repair, HDFS inspection commands, data profiling, dirty-data handling, and safe overwrite patterns, read `references/hdfs_hive_operations.md`.
+
 Use SQL against catalog tables when possible instead of hard-coded HDFS paths. If direct paths are necessary, make them explicit and stable:
 
 ```sql
@@ -228,6 +231,13 @@ HDFS layout rules:
 - Avoid recursive scans over broad HDFS roots; query a table or a narrow path.
 - After out-of-band HDFS writes to partitioned Hive tables, refresh metadata with `MSCK REPAIR TABLE`, `ALTER TABLE ADD PARTITION`, or the catalog-specific repair command.
 - Use `REFRESH TABLE` when Spark has stale metadata for files or partitions.
+
+Metastore and DDL guardrails:
+- Use `SHOW CREATE TABLE`, `DESCRIBE FORMATTED`, `SHOW TBLPROPERTIES`, `SHOW COLUMNS`, and `SHOW PARTITIONS` before changing production tables.
+- Prefer `ALTER TABLE ADD IF NOT EXISTS PARTITION ... LOCATION ...` for targeted partition registration; use `MSCK REPAIR TABLE` for bulk recovery but expect it to be slow on many partitions.
+- Distinguish `EXTERNAL TABLE` from managed tables: dropping an external table removes metadata; dropping a managed table can remove data.
+- Verify HDFS reality with `hdfs dfs -du`, `hdfs dfs -ls`, and `hdfs dfs -test` when metastore state and files disagree.
+- Before `INSERT OVERWRITE`, decide static vs dynamic partition overwrite and set `spark.sql.sources.partitionOverwriteMode` intentionally.
 
 For partitioned tables, always preserve partition pruning:
 
@@ -428,27 +438,14 @@ Guidelines:
 
 Be explicit about write semantics, columns, partitions, and overwrite scope.
 
-```sql
-INSERT OVERWRITE TABLE dwh.daily_revenue
-PARTITION (event_date = DATE '2026-01-01')
-SELECT
-    country,
-    SUM(amount) AS revenue
-FROM filtered_events
-WHERE event_date = DATE '2026-01-01'
-GROUP BY country;
-```
+Before production writes:
+- Profile source data for row counts, date ranges, null keys, duplicates, and skewed keys.
+- Set `spark.sql.sources.partitionOverwriteMode = dynamic` for partition-scoped overwrites when appropriate; static mode can remove more partitions than intended.
+- Use dynamic partition columns in the projected output and validate counts after writing.
+- For full table replacement, prefer table-format atomic replace when available; otherwise use CTAS to a new table plus controlled rename/drop.
+- For dirty staging data, deduplicate with deterministic `ROW_NUMBER`, handle null join keys explicitly, and use `TRY_CAST`/safe parsing where available.
 
-Prefer column lists or `BY NAME` when schema order may drift:
-
-```sql
-INSERT INTO dwh.daily_revenue (event_date, country, revenue)
-SELECT
-    event_date,
-    country,
-    revenue
-FROM daily_revenue;
-```
+Prefer column lists or `BY NAME` when schema order may drift.
 
 Use `MERGE INTO`, `UPDATE`, or `DELETE` only when the configured table format/catalog supports row-level operations, such as Delta, Iceberg, or Hudi with the needed Spark extensions. Mention this dependency in generated code or review comments.
 
@@ -491,6 +488,7 @@ When producing Spark SQL:
 
 ## References to Consult When Needed
 
+- Local HDFS/Hive operations reference: `references/hdfs_hive_operations.md`
 - Apache Spark SQL Performance Tuning: https://spark.apache.org/docs/latest/sql-performance-tuning.html
 - Apache Spark SQL Syntax: https://spark.apache.org/docs/latest/sql-ref-syntax.html
 - Apache Spark SQL Hints: https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-hints.html
