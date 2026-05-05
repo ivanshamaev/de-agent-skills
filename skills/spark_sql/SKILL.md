@@ -1,183 +1,418 @@
-# SKILL: Spark SQL Generator
+---
+name: spark_sql
+description: Use when writing, reviewing, or optimizing production Spark SQL for Hive/lakehouse/HDFS tables, including CTE-heavy queries, joins, windows, partition pruning, insert/overwrite semantics, query hints, statistics, EXPLAIN plans, AQE, skew, and SQL performance diagnostics.
+---
 
-## When to use
+# Spark SQL Engineer
+
+## When to Use
 
 Use this skill when:
-- User asks for SQL queries
-- Data is in Spark / Hive / Lakehouse
-- Query can be expressed in SQL instead of PySpark
+- The user asks for Spark SQL, Hive-compatible SQL, lakehouse SQL, or SQL queries executed by `spark.sql`
+- The task can be expressed more clearly in SQL than PySpark DataFrame code
+- You need to review or optimize joins, aggregations, windows, partitions, writes, or query plans
+- The data volume is large enough that shuffles, skew, HDFS/file layout, and partition pruning matter
 
----
+Prefer the `pyspark_etl` skill for DataFrame-heavy pipeline code. Use this skill for SQL-first answers.
 
-## Core Principles
+## Core Workflow
 
-- Prefer ANSI SQL compatible syntax
-- Use CTEs for readability
-- Avoid SELECT *
-- Push filters early
-- Use partition columns in WHERE
-
----
+1. Clarify the Spark version, table format/catalog, HDFS/storage location, table sizes, partition columns, unique keys, write mode, and expected output schema.
+2. Start with a readable SQL shape using CTEs and explicit column lists.
+3. Push filters and projections as early as semantics allow.
+4. Verify join keys, key uniqueness, join type, and null behavior before adding hints.
+5. For expensive or suspicious queries, recommend `EXPLAIN FORMATTED` or `EXPLAIN COST`.
+6. If optimizer behavior matters, check table statistics with `DESCRIBE EXTENDED` and refresh them with `ANALYZE TABLE` when appropriate.
+7. Call out assumptions about partition pruning, skew, overwrite scope, and table-format-specific features.
 
 ## Query Structure
 
-Always structure queries like:
+Use CTEs for complex logic, with names that describe data state:
 
 ```sql
-WITH base AS (
-    SELECT ...
-    FROM table
-    WHERE ...
+WITH filtered_events AS (
+    SELECT
+        user_id,
+        event_time,
+        event_date,
+        amount
+    FROM raw.events
+    WHERE event_date >= DATE '2026-01-01'
+      AND event_type = 'purchase'
 ),
-aggregated AS (
-    SELECT ...
-    FROM base
+daily_revenue AS (
+    SELECT
+        event_date,
+        user_id,
+        SUM(amount) AS revenue
+    FROM filtered_events
+    GROUP BY event_date, user_id
 )
-SELECT * FROM aggregated;
-````
-
----
-
-## Common Patterns
-
-### Filtering
-
-```sql
-SELECT user_id
-FROM events
-WHERE event_date >= '2025-01-01'
+SELECT
+    event_date,
+    user_id,
+    revenue
+FROM daily_revenue;
 ```
 
----
+Rules:
+- Avoid `SELECT *` in production queries.
+- Put one selected expression per line in non-trivial queries.
+- Use explicit aliases for derived columns.
+- Keep CTEs purposeful; do not create a CTE for every tiny expression.
+- Prefer typed literals such as `DATE '2026-01-01'` when the target type matters.
 
-### Aggregation
+## Filtering and Projection
+
+- Filter partition columns directly in `WHERE` to enable partition pruning.
+- Avoid wrapping partition columns in functions inside predicates.
+- Select only columns required by downstream CTEs.
+- Keep complex predicates readable and grouped with parentheses.
 
 ```sql
-SELECT country, COUNT(*) AS cnt
-FROM events
-GROUP BY country
+WHERE event_date BETWEEN DATE '2026-01-01' AND DATE '2026-01-31'
+  AND country IN ('US', 'CA')
 ```
 
----
-
-### Joins
+Prefer this over:
 
 ```sql
-SELECT e.user_id, u.country
+WHERE TO_DATE(event_time) = DATE '2026-01-01'
+```
+
+when `event_date` is already a partition column.
+
+## Joins
+
+- Always make join type explicit: `INNER JOIN`, `LEFT JOIN`, `LEFT SEMI JOIN`, `LEFT ANTI JOIN`.
+- Prefer `LEFT JOIN` over `RIGHT JOIN` by swapping table order.
+- Use aliases and qualify columns when more than one table is present.
+- Filter and project large inputs before joining.
+- Aggregate before joining when it reduces data volume and preserves semantics.
+- Use `LEFT SEMI JOIN` for existence checks and `LEFT ANTI JOIN` for exclusion checks.
+- Do not use `DISTINCT` to hide join explosions; fix source duplicates or join keys intentionally.
+
+```sql
+WITH users_dim AS (
+    SELECT
+        user_id,
+        country
+    FROM dwh.users
+    WHERE is_current = TRUE
+),
+joined AS (
+    SELECT
+        e.event_date,
+        u.country,
+        e.amount
+    FROM filtered_events e
+    LEFT JOIN users_dim u
+        ON e.user_id = u.user_id
+)
+SELECT
+    event_date,
+    country,
+    SUM(amount) AS revenue
+FROM joined
+GROUP BY event_date, country;
+```
+
+## Aggregations and Windows
+
+- Group by the minimal keys needed for the result.
+- Use `COUNT(*)` for row counts and `COUNT(col)` only when null exclusion is intended.
+- Specify deterministic ordering for `ROW_NUMBER`, `RANK`, `FIRST_VALUE`, and `LAST_VALUE`.
+- Specify window frames for cumulative or analytic calculations.
+- Control null ordering explicitly with `NULLS FIRST` or `NULLS LAST`.
+
+```sql
+WITH ranked_events AS (
+    SELECT
+        user_id,
+        event_time,
+        event_id,
+        ROW_NUMBER() OVER (
+            PARTITION BY user_id
+            ORDER BY event_time DESC NULLS LAST, event_id DESC
+        ) AS rn
+    FROM raw.events
+)
+SELECT
+    user_id,
+    event_time,
+    event_id
+FROM ranked_events
+WHERE rn = 1;
+```
+
+For running totals:
+
+```sql
+SUM(amount) OVER (
+    PARTITION BY user_id
+    ORDER BY event_time
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+) AS running_amount
+```
+
+## Performance and Optimizer Guidance
+
+- Prefer Parquet/ORC/Delta/Iceberg-backed tables over row-oriented formats for analytical workloads.
+- Keep catalog/table statistics current for important managed tables.
+- Use `EXPLAIN FORMATTED` for readable physical plans and `EXPLAIN COST` when statistics are available.
+- Watch for `Exchange`, `BroadcastHashJoin`, `SortMergeJoin`, full scans, missing partition filters, and unexpected Cartesian products.
+- Rely on Adaptive Query Execution when available, but still write good join predicates and pruning filters.
+- AQE can coalesce shuffle partitions, adjust join strategy from runtime statistics, and optimize skewed joins.
+- Cache only reused intermediate tables/views, and uncache them when they are no longer needed.
+
+Diagnostics:
+
+```sql
+EXPLAIN FORMATTED
+SELECT ...;
+
+EXPLAIN COST
+SELECT ...;
+
+ANALYZE TABLE dwh.fact_events COMPUTE STATISTICS;
+ANALYZE TABLE dwh.fact_events COMPUTE STATISTICS FOR COLUMNS user_id, event_date;
+DESCRIBE EXTENDED dwh.fact_events;
+```
+
+## HDFS and Partitioned Tables
+
+Use SQL against catalog tables when possible instead of hard-coded HDFS paths. If direct paths are necessary, make them explicit and stable:
+
+```sql
+SELECT
+    user_id,
+    event_date,
+    amount
+FROM parquet.`hdfs:///warehouse/raw/events/event_date=2026-01-01`;
+```
+
+HDFS layout rules:
+- Prefer columnar files such as Parquet or ORC on HDFS.
+- Avoid many tiny files; compact upstream data or use `REBALANCE` before writes when AQE is enabled.
+- Keep partition directories consistent with Hive-style naming, for example `event_date=2026-01-01/country=US`.
+- Partition by low/medium-cardinality predicates that are common in queries, usually dates or business domains.
+- Do not partition by high-cardinality IDs such as `user_id` unless the table design explicitly requires it.
+- Avoid recursive scans over broad HDFS roots; query a table or a narrow path.
+- After out-of-band HDFS writes to partitioned Hive tables, refresh metadata with `MSCK REPAIR TABLE`, `ALTER TABLE ADD PARTITION`, or the catalog-specific repair command.
+- Use `REFRESH TABLE` when Spark has stale metadata for files or partitions.
+
+For partitioned tables, always preserve partition pruning:
+
+```sql
+SELECT
+    event_date,
+    country,
+    SUM(amount) AS revenue
+FROM raw.events
+WHERE event_date BETWEEN DATE '2026-01-01' AND DATE '2026-01-07'
+GROUP BY event_date, country;
+```
+
+Avoid predicates that hide partition columns:
+
+```sql
+-- Avoid when event_date is the partition column.
+WHERE DATE_TRUNC('MONTH', event_date) = DATE '2026-01-01'
+```
+
+Prefer range predicates:
+
+```sql
+WHERE event_date >= DATE '2026-01-01'
+  AND event_date < DATE '2026-02-01'
+```
+
+## Filtering from Other Datasets
+
+When a large HDFS-backed fact table must be filtered by another dataset, avoid collecting keys into a huge `IN (...)` list. Model the filter dataset as a relation and let Spark optimize the join.
+
+Use `LEFT SEMI JOIN` for key-based filtering:
+
+```sql
+WITH selected_users AS (
+    SELECT DISTINCT
+        user_id
+    FROM mart.campaign_users
+    WHERE campaign_date = DATE '2026-01-05'
+),
+events AS (
+    SELECT
+        user_id,
+        event_date,
+        event_type,
+        amount
+    FROM raw.events
+    WHERE event_date BETWEEN DATE '2026-01-01' AND DATE '2026-01-07'
+)
+SELECT
+    e.user_id,
+    e.event_date,
+    e.event_type,
+    e.amount
 FROM events e
-JOIN users u
-ON e.user_id = u.user_id
+LEFT SEMI JOIN selected_users u
+    ON e.user_id = u.user_id;
 ```
 
----
-
-### Window Functions
+For exclusion, use `LEFT ANTI JOIN`:
 
 ```sql
-SELECT *,
-       ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY event_time DESC) AS rn
-FROM events
+SELECT
+    e.user_id,
+    e.event_date,
+    e.amount
+FROM events e
+LEFT ANTI JOIN blocked_users b
+    ON e.user_id = b.user_id;
 ```
 
----
+Guidelines for complex dataset-driven filters:
+- Apply partition filters on the large fact table even when another dataset controls the selection.
+- Deduplicate the filter dataset only on the join keys, not with broad `SELECT DISTINCT *`.
+- If the filter dataset is small and statistics are missing, consider a `BROADCAST` hint after validating size.
+- If the filter dataset also contains date ranges, join on both business key and partition/date range to preserve pruning opportunities.
+- For partitioned fact tables joined to filtered dimension tables, check `EXPLAIN FORMATTED` for partition filters and dynamic partition pruning behavior.
+- Materialize a reused complex filter dataset as a temp view/table when it is referenced by multiple heavy queries.
 
-### Deduplication
+## Hints
+
+Use hints only when you have evidence the optimizer lacks good information.
+
+Join hints:
 
 ```sql
-WITH ranked AS (
-    SELECT *,
-           ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) AS rn
-    FROM table
-)
-SELECT *
-FROM ranked
-WHERE rn = 1
+SELECT /*+ BROADCAST(u) */
+    e.user_id,
+    u.country
+FROM raw.events e
+JOIN dwh.users u
+    ON e.user_id = u.user_id;
 ```
 
----
-
-## Performance Rules
-
-* Filter on partition columns:
+Partitioning hints for output shape:
 
 ```sql
-WHERE event_date = '2025-01-01'
+SELECT /*+ REBALANCE(event_date) */
+    event_date,
+    country,
+    revenue
+FROM daily_revenue;
 ```
 
-* Avoid cross joins
-* Avoid unnecessary DISTINCT
-* Limit data early if possible
+Guidelines:
+- `BROADCAST` is for genuinely small relations.
+- `MERGE` can request sort-merge joins for large sortable inputs.
+- `SHUFFLE_HASH` may help when per-partition build sides are small enough.
+- `REBALANCE` is useful before writes to reduce tiny or oversized files, and depends on AQE.
+- Hints are suggestions, not guarantees; Spark may ignore unsupported strategies.
 
----
+## Writes and DML
 
-## Anti-Patterns (DO NOT DO)
-
-❌ SELECT * on large tables
-❌ Missing WHERE on partitioned tables
-❌ Nested subqueries instead of CTE
-❌ Cartesian joins
-❌ Using DISTINCT instead of proper grouping
-
----
-
-## Spark-Specific Features
-
-### Insert overwrite
+Be explicit about write semantics, columns, partitions, and overwrite scope.
 
 ```sql
-INSERT OVERWRITE TABLE dwh.revenue
-SELECT ...
+INSERT OVERWRITE TABLE dwh.daily_revenue
+PARTITION (event_date = DATE '2026-01-01')
+SELECT
+    country,
+    SUM(amount) AS revenue
+FROM filtered_events
+WHERE event_date = DATE '2026-01-01'
+GROUP BY country;
 ```
 
----
-
-### Create table
+Prefer column lists or `BY NAME` when schema order may drift:
 
 ```sql
-CREATE TABLE dwh.revenue
-USING PARQUET
-AS
-SELECT ...
+INSERT INTO dwh.daily_revenue (event_date, country, revenue)
+SELECT
+    event_date,
+    country,
+    revenue
+FROM daily_revenue;
 ```
 
----
+Use `MERGE INTO`, `UPDATE`, or `DELETE` only when the configured table format/catalog supports row-level operations, such as Delta, Iceberg, or Hudi with the needed Spark extensions. Mention this dependency in generated code or review comments.
 
-### Delta (if available)
+For production writes, call out:
+- Append vs overwrite vs replace-where behavior
+- Static vs dynamic partition overwrite
+- Idempotency and retry safety
+- Late-arriving data policy
+- Expected output file count and partition cardinality
 
-```sql
-MERGE INTO target t
-USING source s
-ON t.id = s.id
-WHEN MATCHED THEN UPDATE SET *
-WHEN NOT MATCHED THEN INSERT *
-```
+## Anti-Patterns
 
----
+Do not:
+- Use `SELECT *` in production queries or writes
+- Omit partition filters on large partitioned tables
+- Scan broad HDFS roots instead of catalog tables, narrow paths, or partition-pruned predicates
+- Use huge literal `IN` lists from another dataset instead of joins or semi joins
+- Use `DISTINCT` as a bandage for incorrect joins
+- Use `ORDER BY` globally unless the final result truly requires total ordering
+- Write broad `INSERT OVERWRITE` statements without an intentional overwrite scope
+- Broadcast large or unknown-size tables
+- Cross join unless explicitly requested and bounded
+- Put Python/Scala UDF logic into SQL when built-in Spark SQL functions can express it
+- Depend on nondeterministic deduplication without a stable `ORDER BY`
+- Hide type conversions; cast explicitly where correctness depends on type
 
 ## Example Query
 
 ```sql
 WITH purchases AS (
-    SELECT user_id, amount
-    FROM events
-    WHERE event_type = 'purchase'
+    SELECT
+        user_id,
+        event_date,
+        amount
+    FROM raw.events
+    WHERE event_date BETWEEN DATE '2026-01-01' AND DATE '2026-01-31'
+      AND event_type = 'purchase'
 ),
-joined AS (
-    SELECT p.user_id, u.country, p.amount
+users_dim AS (
+    SELECT
+        user_id,
+        country
+    FROM dwh.users
+    WHERE is_current = TRUE
+),
+revenue AS (
+    SELECT
+        p.event_date,
+        u.country,
+        SUM(p.amount) AS revenue
     FROM purchases p
-    JOIN users u ON p.user_id = u.user_id
+    LEFT JOIN users_dim u
+        ON p.user_id = u.user_id
+    GROUP BY p.event_date, u.country
 )
-SELECT country, SUM(amount) AS revenue
-FROM joined
-GROUP BY country;
+SELECT
+    event_date,
+    country,
+    revenue
+FROM revenue;
 ```
-
----
 
 ## Output Expectations
 
-* Always return valid Spark SQL
-* Use CTEs for complex logic
-* Optimize for large datasets
-* Avoid unnecessary columns
+When producing Spark SQL:
+- Return valid Spark SQL, not generic warehouse SQL
+- Use explicit columns, aliases, join types, and write semantics
+- Prefer readable CTEs for multi-step logic
+- Explain performance-sensitive choices briefly
+- Mention when a feature depends on Spark version, table format, catalog, or lakehouse extensions
+- Preserve HDFS partition pruning and avoid small-file-heavy output layouts
+- Suggest `EXPLAIN`, `ANALYZE TABLE`, or runtime metric checks when performance depends on data distribution
 
+## References to Consult When Needed
+
+- Apache Spark SQL Performance Tuning: https://spark.apache.org/docs/latest/sql-performance-tuning.html
+- Apache Spark SQL Syntax: https://spark.apache.org/docs/latest/sql-ref-syntax.html
+- Apache Spark SQL Hints: https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-hints.html
+- Apache Spark SQL EXPLAIN: https://spark.apache.org/docs/latest/sql-ref-syntax-qry-explain.html
+- Apache Spark SQL ANALYZE TABLE: https://spark.apache.org/docs/latest/sql-ref-syntax-aux-analyze-table.html
