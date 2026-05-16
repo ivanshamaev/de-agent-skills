@@ -13,7 +13,8 @@
       "WebFetch(domain:aws.amazon.com)",
       "WebFetch(domain:sixfeetup.com)",
       "WebFetch(domain:trino.io)",
-      "WebFetch(domain:www.starburst.io)"
+      "WebFetch(domain:www.starburst.io)",
+      "Bash(mkdir -p /home/ivan/de-agent-skills/skills/dbt_trino)"
     ],
     "additionalDirectories": [
       "/home/ivan/de-agent-skills/skills"

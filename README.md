@@ -301,6 +301,9 @@ OLAP-движки для serving layer — конечная точка для BI
 | [`vertica_query_optimization`](skills/vertica_query_optimization/SKILL.md) | Vertica 11.x | EXPLAIN-планы, проекции, RLE, GROUP BY, JOIN, ORDER BY, Data Collector |
 | [`airflow_dag_factory`](skills/airflow_dag_factory/SKILL.md) | Airflow + dag-factory v1.0+ | YAML DAG, defaults-иерархия, dynamic mapping, datasets, CI/CD |
 | [`trino_iceberg`](skills/trino_iceberg/SKILL.md) | Trino + Apache Iceberg | DDL, бакетирование, партицирование, ALTER TABLE, DML, обслуживание, time travel |
+| [`dbt_trino`](skills/dbt_trino/SKILL.md) | dbt + Trino / Starburst | profiles.yml, аутентификация, materializations, incremental strategies, Iceberg properties, data modeling, CI/CD |
+| [`kimball_data_modeling`](skills/kimball_data_modeling/SKILL.md) | Kimball Dimensional Modeling | Факты, измерения, SCD 0/1/2/3/4/6, суррогатные ключи, конформные/ролевые/мусорные/вырожденные измерения, date dim, DDL, DML, паттерны загрузки |
+| [`data_vault_2`](skills/data_vault_2/SKILL.md) | Data Vault 2.0 | Hubs, Links, Satellites, hash keys, hash diff, MAS, EFF SAT, PIT, Bridge, Business Vault, Information Mart, insert-only DML, Airflow pipeline, dbt + automate-dv |
 
 ### Спецификации (docs/specs)
 

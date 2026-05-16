@@ -56,6 +56,10 @@ A skill must be self-contained: it cannot assume other skills are loaded simulta
 | `vertica_query_optimization` | Vertica 11.x query performance — EXPLAIN, projection design, join/GROUP BY/ORDER BY tuning, encoding, RLE, Data Collector diagnostics |
 | `airflow_dag_factory` | Airflow DAG Factory (dag-factory v1.0+) — YAML DAG authoring, defaults hierarchy, dynamic mapping, datasets, callbacks, TaskFlow, env vars, DRY anchors, large-scale generation, CI/CD linting |
 | `trino_iceberg` | Trino + Apache Iceberg — table DDL, partition transforms, sorted tables, DML/MERGE, EXPLAIN plan reading, join optimization, ANALYZE, table maintenance (optimize/expire_snapshots/remove_orphan_files), schema evolution, time travel, metadata table diagnostics |
+| `dbt_trino` | dbt + Trino/Starburst — profiles.yml, all auth methods, materializations (table/view/incremental/materialized_view/ephemeral), incremental strategies (append/merge/delete+insert), Iceberg table properties, on_schema_change, seeds, snapshots, grants, data modeling (staging/intermediate/mart), CI/CD |
+| `kimball_data_modeling` | Kimball dimensional modeling — fact table types (transaction/snapshot/accumulating), dimension design, SCD types 0/1/2/3/4/6, surrogate keys, conformed/role-playing/junk/degenerate dimensions, bridge tables, date dimension DDL, fact/dim DDL, DML load patterns, late-arriving data, best practices |
+| `data_vault_2` | Data Vault 2.0 — Hubs, Links, Satellites, hash keys, hash diff, staging layer, Multi-Active/Effectivity/Computed satellites, Reference tables, Same-As Links, PIT tables, Bridge tables, Business Vault, Information Mart construction, insert-only DML patterns, pipeline sequencing (Airflow + dbt + automate-dv) |
+| `medallion_architecture` | Medallion (Bronze/Silver/Gold) — layer design, DDL per layer, DML load/upsert patterns, 7 deduplication strategies (ROW_NUMBER/MERGE/hash/watermark/GROUP BY/CDC/surrogate check), schema evolution, DQ gates, partitioning per layer, watermark pipelines, CDC micro-batch, Airflow DAG, dbt project structure |
 
 ## Existing Specs
 
