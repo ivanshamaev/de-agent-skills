@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /home/ivan/de-agent-skills/skills/vertica)",
+      "WebFetch(domain:docs.vertica.com)",
+      "Bash(find /home/ivan/codex/agents/skills/dag-factory -type f | sort)",
+      "Read(//home/ivan/codex/agents/skills/dag-factory/**)",
+      "WebFetch(domain:astronomer.github.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch",
+      "WebFetch(domain:www.astronomer.io)",
+      "WebFetch(domain:aws.amazon.com)",
+      "WebFetch(domain:sixfeetup.com)",
+      "WebFetch(domain:trino.io)",
+      "WebFetch(domain:www.starburst.io)"
+    ],
+    "additionalDirectories": [
+      "/home/ivan/de-agent-skills/skills"
+    ]
+  }
+}
