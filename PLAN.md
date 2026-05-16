@@ -1,0 +1,181 @@
+# DE Agent Skills — Plan
+
+Дорожная карта разработки скиллов для AI-агента по Data Engineering.  
+Основан на `prepare_plan.md`. Статусы обновляются по мере реализации.
+
+## Статусы
+
+| Статус | Значение |
+|--------|----------|
+| ✅ Done | Скилл реализован в `skills/` |
+| 🔲 Todo | В очереди |
+| ⭐ Priority | Высокий приоритет, взять следующим |
+| 💤 Low | Низкий приоритет (облачные сервисы, недоступные из РФ, или узкая аудитория) |
+
+---
+
+## 1. Orchestration & Workflow Management
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `airflow_dags` | [skills/airflow_dags/SKILL.md](skills/airflow_dags/SKILL.md) | DAG authoring, TaskFlow API, операторы, сенсоры, TaskGroups, dynamic mapping, XComs, callbacks, пайплайны |
+| ✅ Done | `airflow_dag_factory` | [skills/airflow_dag_factory/SKILL.md](skills/airflow_dag_factory/SKILL.md) | YAML-based DAG Factory v1.0+, декларативная генерация DAGов |
+| ✅ Done | `dagster-assets` | [skills/dagster_assets/SKILL.md](skills/dagster_assets/SKILL.md) | Software-Defined Assets, declarative pipelines, partitions, sensors, IO managers |
+| 🔲 Todo | `prefect-workflows` | — | Event-driven flows, dynamic caching, deployments, workers |
+| 💤 Low | `mage-ai-pipelines` | — | Hybrid SQL+Python pipelines, модульная архитектура |
+
+---
+
+## 2. Data Transformation & Modeling
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `dbt_trino` | [skills/dbt_trino/SKILL.md](skills/dbt_trino/SKILL.md) | dbt + Trino/Starburst: профили, материализации, инкрементальные стратегии, CI/CD |
+| ✅ Done | `kimball_data_modeling` | [skills/kimball_data_modeling/SKILL.md](skills/kimball_data_modeling/SKILL.md) | Dimensional modeling, fact/dim DDL, SCD 0-6, DML-паттерны |
+| ✅ Done | `data_vault_2` | [skills/data_vault_2/SKILL.md](skills/data_vault_2/SKILL.md) | DV 2.0: Hub/Link/Satellite, PIT, Bridge, Business Vault, пайплайны |
+| ✅ Done | `medallion_architecture` | [skills/medallion_architecture/SKILL.md](skills/medallion_architecture/SKILL.md) | Bronze/Silver/Gold: DDL, DML, 7 стратегий дедупликации, watermark, CDC |
+| ✅ Done | `dbt-core` | [skills/dbt_core/SKILL.md](skills/dbt_core/SKILL.md) | Общий dbt Core: seeds, snapshots, macros, hooks, packages, MetricFlow, мультиадаптерные проекты |
+| ✅ Done | `dbt-macros` | [skills/dbt_macros/SKILL.md](skills/dbt_macros/SKILL.md) | Jinja fundamentals, macro authoring, adapter.dispatch, cross-database macros, run_query, built-in overrides |
+| ✅ Done | `sqlmesh` | [skills/sqlmesh/SKILL.md](skills/sqlmesh/SKILL.md) | Incremental models, Virtual Environments, plan/apply workflow, state-aware deploys |
+
+---
+
+## 3. Big Data & Distributed Computing
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `spark_sql` | [skills/spark_sql/SKILL.md](skills/spark_sql/SKILL.md) | Spark SQL для Hive/HDFS/Lakehouse: запросы, DDL, запись, оптимизация |
+| ✅ Done | `pyspark_etl` | [skills/pyspark_etl/SKILL.md](skills/pyspark_etl/SKILL.md) | PySpark DataFrame пайплайны, трансформации, joins, производительность |
+| ✅ Done | `pyspark_streaming` | [skills/pyspark_streaming/SKILL.md](skills/pyspark_streaming/SKILL.md) | Structured Streaming: Kafka/file sources, output modes, watermarks, windows, foreachBatch, checkpointing |
+| ✅ Done | `apache_flink` | [skills/apache_flink/SKILL.md](skills/apache_flink/SKILL.md) | Stateful stream processing, event-time, windowing, Table API, Flink SQL, checkpoints, RocksDB |
+| 🔲 Todo | `ray-data` | — | Distributed ML/Data workloads, Ray Datasets, remote functions, actors |
+
+---
+
+## 4. Modern Storage & Data Lakes
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `trino_iceberg` | [skills/trino_iceberg/SKILL.md](skills/trino_iceberg/SKILL.md) | Trino + Iceberg: DDL, партиционирование, бакетирование, ALTER TABLE, DML, MERGE, оптимизация |
+| ✅ Done | `delta_lake` | [skills/delta_lake/SKILL.md](skills/delta_lake/SKILL.md) | Delta: Z-Order, OPTIMIZE, VACUUM, Time Travel, DML, Change Data Feed, schema evolution, RESTORE, clone |
+| ✅ Done | `clickhouse_olap` | [skills/clickhouse_olap/SKILL.md](skills/clickhouse_olap/SKILL.md) | ClickHouse: MergeTree-семейство, партиции, TTL, materialized views, проекции, оптимизация запросов |
+| ✅ Done | `duckdb` | [skills/duckdb/SKILL.md](skills/duckdb/SKILL.md) | In-process analytics, Parquet/CSV/JSON/Iceberg/Delta, extensions, DuckDB SQL, Python API |
+| 🔲 Todo | `postgresql-data-engineering` | — | Indexes (B-Tree/BRIN/GIN), partitioning, COPY, autovacuum, EXPLAIN, оконные функции |
+| 💤 Low | `snowflake` | — | Виртуальные склады, кластеризация, Snowpark, FinOps (недоступен из РФ напрямую) |
+
+---
+
+## 5. Data Ingestion & Streaming
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `apache_kafka` | [skills/apache_kafka/SKILL.md](skills/apache_kafka/SKILL.md) | Топики, партиции, consumer groups, exactly-once, Schema Registry, Kafka Connect, DLQ, мониторинг lag |
+| ✅ Done | `cdc-pipelines` | [skills/cdc_debezium/SKILL.md](skills/cdc_debezium/SKILL.md) | Debezium CDC: коннекторы PostgreSQL/MySQL, change event структура, outbox pattern, Iceberg sink |
+| 🔲 Todo | `airbyte` | — | Кастомные и стандартные коннекторы, ELT, нормализация, версионирование схем |
+| 🔲 Todo | `redpanda` | — | Kafka-совместимый стриминг без JVM, настройка кластера, тюнинг |
+| 💤 Low | `meltano` | — | Declarative ELT с Singer taps/targets |
+
+---
+
+## 6. Data Quality, Governance & Observability
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `great-expectations` | [skills/great_expectations/SKILL.md](skills/great_expectations/SKILL.md) | Expectation Suites, Checkpoints, Data Docs, интеграция с Airflow/dbt |
+| ✅ Done | `openlineage` | [skills/openlineage/SKILL.md](skills/openlineage/SKILL.md) | Column-level lineage, интеграция с Airflow/Spark/dbt, OpenLineage Events, Marquez |
+| ✅ Done | `soda-core` | [skills/soda_core/SKILL.md](skills/soda_core/SKILL.md) | SodaCL checks, CLI scans, интеграция с dbt/Airflow, алерты |
+| 🔲 Todo | `data-contracts` | — | YAML/JSON-schema контракты, Data Contract CLI, breaking changes protection |
+| 🔲 Todo | `datahub-catalog` | — | Data catalog, metadata ingestion, lineage graph, поиск (Data Discovery) |
+| 💤 Low | `amundsen` | — | Data discovery catalog (уступает DataHub по активности сообщества) |
+
+---
+
+## 7. Infrastructure as Code & DataOps
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| ✅ Done | `kubernetes-data-platform` | [skills/kubernetes_data/SKILL.md](skills/kubernetes_data/SKILL.md) | Spark-on-K8s, Airflow Helm chart, KubernetesExecutor, KubernetesPodOperator, resource quotas |
+| 🔲 Todo | `github-actions-dataops` | — | CI/CD для dbt, DAG validation, SQLFluff lint, auto-deploy, slim CI |
+| 🔲 Todo | `docker-data-environments` | — | Multi-stage Dockerfiles для data сервисов, layer caching, private registry |
+| 🔲 Todo | `terraform-data-infrastructure` | — | S3/MinIO, IAM, Kafka, K8s cluster через IaC |
+| 🔲 Todo | `sqlfluff` | — | SQL linting, диалекты, конфигурация `.sqlfluff`, авто-фикс, CI |
+
+---
+
+## 8. ML/DataOps (AI-Adjacent)
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| 🔲 Todo | `feature-store` | — | Feast: online/offline store, point-in-time correctness, feature views |
+| 🔲 Todo | `mlflow-data-pipelines` | — | Experiment tracking, model registry, MLflow Projects для DE |
+| 🔲 Todo | `rag-data-pipeline` | — | Chunking, embedding refresh, vector store loading, hybrid retrieval |
+| 💤 Low | `ml-data-pipeline-review` | — | Training-serving skew, dataset versioning, TFX |
+
+---
+
+## 9. AI-Agentic & Meta Skills
+
+| Статус | Скилл | Файл | Описание |
+|--------|-------|------|----------|
+| 🔲 Todo | `de-root-cause-analysis` | — | RCA для pipeline failures: lineage tracing, upstream/downstream анализ, logs |
+| 🔲 Todo | `de-production-readiness` | — | Production readiness review: retries, idempotency, alerting, SLAs, observability |
+| 🔲 Todo | `de-architecture-decision` | — | ADR generation: template, trade-offs, context, alternatives |
+| 🔲 Todo | `de-cost-optimization` | — | Query cost analysis, warehouse sizing, storage tier recommendations |
+| 💤 Low | `de-postmortem-writer` | — | Blameless postmortem генератор, CAPA |
+
+---
+
+## Имеющиеся Specs
+
+| Spec | Тема |
+|------|------|
+| `vertica_query_optimization_v11.md` | Vertica 11.x query optimization |
+| `vertica_admin_guide_v24.md` | Vertica 24.3.x administration |
+| `trino_iceberg_performance_optimization.md` | Trino + Iceberg performance |
+| `hdfs_hive_parquet_datalake.md` | HDFS/Hive/Parquet lakehouse |
+| `pyspark_enterprise.md` | PySpark enterprise patterns |
+| `spark_sql_enterprise.md` | Spark SQL enterprise |
+| `spark_sql_hdfs_hive_operations.md` | Spark SQL + HDFS/Hive ops |
+
+---
+
+## Рекомендуемая очерёдность
+
+### ✅ Выполнено (батч 1, скиллы 1–6)
+
+| # | Скилл | Статус |
+|---|-------|--------|
+| 1 | `apache_kafka` | ✅ Done |
+| 2 | `pyspark_streaming` | ✅ Done |
+| 3 | `delta_lake` | ✅ Done |
+| 4 | `apache_flink` | ✅ Done |
+| 5 | `great_expectations` | ✅ Done |
+| 6 | `clickhouse_olap` | ✅ Done |
+
+### ✅ Выполнено (батч 2, скиллы 7–10)
+
+| # | Скилл | Статус |
+|---|-------|--------|
+| 7 | `dbt-core` | ✅ Done |
+| 8 | `cdc-pipelines` | ✅ Done |
+| 9 | `openlineage` | ✅ Done |
+| 10 | `kubernetes-data-platform` | ✅ Done |
+
+### ✅ Выполнено (батч 3, скиллы 11–15)
+
+| # | Скилл | Статус |
+|---|-------|--------|
+| 11 | `dbt-macros` | ✅ Done |
+| 12 | `dagster-assets` | ✅ Done |
+| 13 | `sqlmesh` | ✅ Done |
+| 14 | `soda-core` | ✅ Done |
+| 15 | `duckdb` | ✅ Done |
+
+### 🔲 Следующий батч (скиллы 16–19)
+
+| # | Скилл | Обоснование |
+|---|-------|-------------|
+| 16 | `postgresql-data-engineering` | Партиционирование, индексы, COPY, EXPLAIN, VACUUM |
+| 17 | `github-actions-dataops` | CI/CD для dbt, SQLFluff lint, DAG validation, slim CI |
+| 18 | `data-contracts` | YAML/JSON-schema контракты, breaking changes protection |
+| 19 | `datahub-catalog` | Data catalog, metadata ingestion, lineage graph |
