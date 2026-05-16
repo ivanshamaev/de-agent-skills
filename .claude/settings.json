@@ -14,7 +14,9 @@
       "WebFetch(domain:sixfeetup.com)",
       "WebFetch(domain:trino.io)",
       "WebFetch(domain:www.starburst.io)",
-      "Bash(mkdir -p /home/ivan/de-agent-skills/skills/dbt_trino)"
+      "Bash(mkdir -p /home/ivan/de-agent-skills/skills/dbt_trino)",
+      "WebFetch(domain:airflow.apache.org)",
+      "WebFetch(domain:docs.astronomer.io)"
     ],
     "additionalDirectories": [
       "/home/ivan/de-agent-skills/skills"
