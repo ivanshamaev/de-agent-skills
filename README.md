@@ -33,6 +33,7 @@
 | ----------------------- | ---------------------------------------------------------- | ----------------------------------------- |
 | ClickHouse Agent Skills | [agent-skills](https://github.com/ClickHouse/agent-skills) | Набор skills для AI-агентов от ClickHouse |
 | Astronomer Agents       | [agents](https://github.com/astronomer/agents)             | AI agent tooling for data engineering workflows |
+| dbt Labs                | [dbt-agent-skills](https://github.com/dbt-labs/dbt-agent-skills)| A curated collection of Agent Skills for working with dbt |
 
 ## Концепции и парадигмы
 
