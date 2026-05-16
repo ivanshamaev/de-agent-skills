@@ -6,7 +6,7 @@
 
 ## Содержание
 
-1. [Концепции и парадигмы](#поставщики-skills)
+1. [Поставщики Skills](#поставщики-skills)
 2. [Концепции и парадигмы](#концепции-и-парадигмы)
 3. [Архитектурные паттерны](#архитектурные-паттерны)
 4. [Моделирование данных](#моделирование-данных)
@@ -34,6 +34,7 @@
 | ClickHouse Agent Skills | [agent-skills](https://github.com/ClickHouse/agent-skills) | Набор skills для AI-агентов от ClickHouse |
 | Astronomer Agents       | [agents](https://github.com/astronomer/agents)             | AI agent tooling for data engineering workflows |
 | dbt Labs                | [dbt-agent-skills](https://github.com/dbt-labs/dbt-agent-skills)| A curated collection of Agent Skills for working with dbt |
+
 
 ## Концепции и парадигмы
 
