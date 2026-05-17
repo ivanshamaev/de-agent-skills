@@ -60,7 +60,7 @@
 | ✅ Done | `delta_lake` | [skills/delta_lake/SKILL.md](skills/delta_lake/SKILL.md) | Delta: Z-Order, OPTIMIZE, VACUUM, Time Travel, DML, Change Data Feed, schema evolution, RESTORE, clone |
 | ✅ Done | `clickhouse_olap` | [skills/clickhouse_olap/SKILL.md](skills/clickhouse_olap/SKILL.md) | ClickHouse: MergeTree-семейство, партиции, TTL, materialized views, проекции, оптимизация запросов |
 | ✅ Done | `duckdb` | [skills/duckdb/SKILL.md](skills/duckdb/SKILL.md) | In-process analytics, Parquet/CSV/JSON/Iceberg/Delta, extensions, DuckDB SQL, Python API |
-| 🔲 Todo | `postgresql-data-engineering` | — | Indexes (B-Tree/BRIN/GIN), partitioning, COPY, autovacuum, EXPLAIN, оконные функции |
+| ✅ Done | `postgresql-data-engineering` | [skills/postgresql_de/SKILL.md](skills/postgresql_de/SKILL.md) | Партиционирование, индексы (B-Tree/BRIN/GIN/GIST/partial/covering), COPY, EXPLAIN ANALYZE, autovacuum, JSONB, CTE, bulk load |
 | 💤 Low | `snowflake` | — | Виртуальные склады, кластеризация, Snowpark, FinOps (недоступен из РФ напрямую) |
 
 ---
@@ -71,7 +71,7 @@
 |--------|-------|------|----------|
 | ✅ Done | `apache_kafka` | [skills/apache_kafka/SKILL.md](skills/apache_kafka/SKILL.md) | Топики, партиции, consumer groups, exactly-once, Schema Registry, Kafka Connect, DLQ, мониторинг lag |
 | ✅ Done | `cdc-pipelines` | [skills/cdc_debezium/SKILL.md](skills/cdc_debezium/SKILL.md) | Debezium CDC: коннекторы PostgreSQL/MySQL, change event структура, outbox pattern, Iceberg sink |
-| 🔲 Todo | `airbyte` | — | Кастомные и стандартные коннекторы, ELT, нормализация, версионирование схем |
+| ✅ Done | `airbyte` | [skills/airbyte/SKILL.md](skills/airbyte/SKILL.md) | Sync modes, Python CDK (HttpStream/IncrementalMixin), Connector Builder, normalization, Airflow интеграция, Terraform |
 | 🔲 Todo | `redpanda` | — | Kafka-совместимый стриминг без JVM, настройка кластера, тюнинг |
 | 💤 Low | `meltano` | — | Declarative ELT с Singer taps/targets |
 
@@ -84,8 +84,8 @@
 | ✅ Done | `great-expectations` | [skills/great_expectations/SKILL.md](skills/great_expectations/SKILL.md) | Expectation Suites, Checkpoints, Data Docs, интеграция с Airflow/dbt |
 | ✅ Done | `openlineage` | [skills/openlineage/SKILL.md](skills/openlineage/SKILL.md) | Column-level lineage, интеграция с Airflow/Spark/dbt, OpenLineage Events, Marquez |
 | ✅ Done | `soda-core` | [skills/soda_core/SKILL.md](skills/soda_core/SKILL.md) | SodaCL checks, CLI scans, интеграция с dbt/Airflow, алерты |
-| 🔲 Todo | `data-contracts` | — | YAML/JSON-schema контракты, Data Contract CLI, breaking changes protection |
-| 🔲 Todo | `datahub-catalog` | — | Data catalog, metadata ingestion, lineage graph, поиск (Data Discovery) |
+| ✅ Done | `data-contracts` | [skills/data_contracts/SKILL.md](skills/data_contracts/SKILL.md) | YAML spec, Data Contract CLI, SodaCL quality checks, breaking change detection, CI/CD |
+| ✅ Done | `datahub-catalog` | [skills/datahub_catalog/SKILL.md](skills/datahub_catalog/SKILL.md) | GMS архитектура, ingestion recipes, Python SDK lineage, column-level lineage, GraphQL search |
 | 💤 Low | `amundsen` | — | Data discovery catalog (уступает DataHub по активности сообщества) |
 
 ---
@@ -95,7 +95,7 @@
 | Статус | Скилл | Файл | Описание |
 |--------|-------|------|----------|
 | ✅ Done | `kubernetes-data-platform` | [skills/kubernetes_data/SKILL.md](skills/kubernetes_data/SKILL.md) | Spark-on-K8s, Airflow Helm chart, KubernetesExecutor, KubernetesPodOperator, resource quotas |
-| 🔲 Todo | `github-actions-dataops` | — | CI/CD для dbt, DAG validation, SQLFluff lint, auto-deploy, slim CI |
+| ✅ Done | `github-actions-dataops` | [skills/github_actions_dataops/SKILL.md](skills/github_actions_dataops/SKILL.md) | dbt slim CI, SQLFluff PR annotations, DAG integrity tests, Docker builds, OIDC, reusable workflows |
 | 🔲 Todo | `docker-data-environments` | — | Multi-stage Dockerfiles для data сервисов, layer caching, private registry |
 | 🔲 Todo | `terraform-data-infrastructure` | — | S3/MinIO, IAM, Kafka, K8s cluster через IaC |
 | 🔲 Todo | `sqlfluff` | — | SQL linting, диалекты, конфигурация `.sqlfluff`, авто-фикс, CI |
@@ -171,11 +171,22 @@
 | 14 | `soda-core` | ✅ Done |
 | 15 | `duckdb` | ✅ Done |
 
-### 🔲 Следующий батч (скиллы 16–19)
+### ✅ Выполнено (батч 4, скиллы 16–20)
+
+| # | Скилл | Статус |
+|---|-------|--------|
+| 16 | `postgresql-data-engineering` | ✅ Done |
+| 17 | `github-actions-dataops` | ✅ Done |
+| 18 | `data-contracts` | ✅ Done |
+| 19 | `datahub-catalog` | ✅ Done |
+| 20 | `airbyte` | ✅ Done |
+
+### 🔲 Следующий батч (скиллы 21–25)
 
 | # | Скилл | Обоснование |
 |---|-------|-------------|
-| 16 | `postgresql-data-engineering` | Партиционирование, индексы, COPY, EXPLAIN, VACUUM |
-| 17 | `github-actions-dataops` | CI/CD для dbt, SQLFluff lint, DAG validation, slim CI |
-| 18 | `data-contracts` | YAML/JSON-schema контракты, breaking changes protection |
-| 19 | `datahub-catalog` | Data catalog, metadata ingestion, lineage graph |
+| 21 | `docker-data-environments` | Multi-stage Dockerfiles для data сервисов, layer caching |
+| 22 | `terraform-data-infrastructure` | IaC для S3/MinIO, IAM, Kafka, K8s |
+| 23 | `mlflow-data-pipelines` | Experiment tracking, model registry для DE |
+| 24 | `rag-data-pipeline` | Chunking, embedding refresh, vector store |
+| 25 | `de-production-readiness` | Retries, idempotency, alerting, SLAs |
