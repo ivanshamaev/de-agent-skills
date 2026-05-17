@@ -22,7 +22,7 @@
 | ✅ Done | `airflow_dag_factory` | [skills/airflow_dag_factory/SKILL.md](skills/airflow_dag_factory/SKILL.md) | YAML-based DAG Factory v1.0+, декларативная генерация DAGов |
 | ✅ Done | `dagster-assets` | [skills/dagster_assets/SKILL.md](skills/dagster_assets/SKILL.md) | Software-Defined Assets, declarative pipelines, partitions, sensors, IO managers |
 | ✅ Done | `prefect-workflows` | [skills/prefect_workflows/SKILL.md](skills/prefect_workflows/SKILL.md) | Event-driven flows, dynamic caching, deployments, workers |
-| 💤 Low | `mage-ai-pipelines` | — | Hybrid SQL+Python pipelines, модульная архитектура |
+| ✅ Done | `mage-ai-pipelines` | [skills/mage_ai/SKILL.md](skills/mage_ai/SKILL.md) | Hybrid SQL+Python pipelines, модульная архитектура |
 
 ---
 
@@ -98,7 +98,7 @@
 | ✅ Done | `github-actions-dataops` | [skills/github_actions_dataops/SKILL.md](skills/github_actions_dataops/SKILL.md) | dbt slim CI, SQLFluff PR annotations, DAG integrity tests, Docker builds, OIDC, reusable workflows |
 | ✅ Done | `docker-data-environments` | [skills/docker_data_envs/SKILL.md](skills/docker_data_envs/SKILL.md) | Multi-stage Dockerfiles для data сервисов, layer caching, private registry |
 | ✅ Done | `terraform-data-infrastructure` | [skills/terraform_data/SKILL.md](skills/terraform_data/SKILL.md) | S3/MinIO, IAM, Kafka, K8s cluster через IaC |
-| 🔲 Todo | `sqlfluff` | — | SQL linting, диалекты, конфигурация `.sqlfluff`, авто-фикс, CI |
+| ✅ Done | `sqlfluff` | [skills/sqlfluff/SKILL.md](skills/sqlfluff/SKILL.md) | SQL linting, диалекты, конфигурация `.sqlfluff`, авто-фикс, CI |
 
 ---
 
@@ -106,7 +106,7 @@
 
 | Статус | Скилл | Файл | Описание |
 |--------|-------|------|----------|
-| 🔲 Todo | `feature-store` | — | Feast: online/offline store, point-in-time correctness, feature views |
+| ✅ Done | `feature-store` | [skills/feature_store/SKILL.md](skills/feature_store/SKILL.md) | Feast: online/offline store, point-in-time correctness, feature views |
 | ✅ Done | `mlflow-data-pipelines` | [skills/mlflow_pipelines/SKILL.md](skills/mlflow_pipelines/SKILL.md) | Experiment tracking, model registry, MLflow Projects для DE |
 | ✅ Done | `rag-data-pipeline` | [skills/rag_pipeline/SKILL.md](skills/rag_pipeline/SKILL.md) | Chunking, embedding refresh, vector store loading, hybrid retrieval |
 | 💤 Low | `ml-data-pipeline-review` | — | Training-serving skew, dataset versioning, TFX |
@@ -120,8 +120,8 @@
 | ✅ Done | `de-root-cause-analysis` | [skills/de_rca/SKILL.md](skills/de_rca/SKILL.md) | RCA для pipeline failures: lineage tracing, upstream/downstream анализ, logs |
 | ✅ Done | `de-production-readiness` | [skills/de_production_readiness/SKILL.md](skills/de_production_readiness/SKILL.md) | Production readiness review: retries, idempotency, alerting, SLAs, observability |
 | ✅ Done | `de-architecture-decision` | [skills/de_adr/SKILL.md](skills/de_adr/SKILL.md) | ADR generation: template, trade-offs, context, alternatives |
-| 🔲 Todo | `de-cost-optimization` | — | Query cost analysis, warehouse sizing, storage tier recommendations |
-| 💤 Low | `de-postmortem-writer` | — | Blameless postmortem генератор, CAPA |
+| ✅ Done | `de-cost-optimization` | [skills/de_cost_optimization/SKILL.md](skills/de_cost_optimization/SKILL.md) | Query cost analysis, warehouse sizing, storage tier recommendations |
+| ✅ Done | `de-postmortem-writer` | [skills/de_postmortem/SKILL.md](skills/de_postmortem/SKILL.md) | Blameless postmortem генератор, CAPA |
 
 ---
 
@@ -201,12 +201,12 @@
 | 29 | `de-root-cause-analysis` | ✅ Done |
 | 30 | `de-architecture-decision` | ✅ Done |
 
-### 🔲 Следующий батч (скиллы 31–35)
+### ✅ Выполнено (батч 7, скиллы 31–35)
 
-| # | Скилл | Обоснование |
-|---|-------|-------------|
-| 31 | `sqlfluff` | SQL linting, диалекты, конфигурация, авто-фикс, CI |
-| 32 | `feature-store` | Feast: online/offline store, point-in-time correctness |
-| 33 | `de-cost-optimization` | Query cost analysis, warehouse sizing, storage tiers |
-| 34 | `de-postmortem-writer` | Blameless postmortem генератор, CAPA |
-| 35 | `mage-ai-pipelines` | Hybrid SQL+Python pipelines, модульная архитектура |
+| # | Скилл | Статус |
+|---|-------|--------|
+| 31 | `sqlfluff` | ✅ Done |
+| 32 | `feature-store` | ✅ Done |
+| 33 | `de-cost-optimization` | ✅ Done |
+| 34 | `de-postmortem-writer` | ✅ Done |
+| 35 | `mage-ai-pipelines` | ✅ Done |
