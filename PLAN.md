@@ -210,3 +210,91 @@
 | 33 | `de-cost-optimization` | ✅ Done |
 | 34 | `de-postmortem-writer` | ✅ Done |
 | 35 | `mage-ai-pipelines` | ✅ Done |
+
+---
+
+## StarRocks Group Skills (`group_skills/starrocks_group_skills/`)
+
+42 skills total, organized into 8 groups. All ✅ Done.
+
+### Group 1 — Admin & Operations (5)
+
+| Скилл | Файл |
+|-------|------|
+| `starrocks-admin-cluster-health` | starrocks_admin_cluster_health/SKILL.md |
+| `starrocks-admin-compaction` | starrocks_admin_compaction/SKILL.md |
+| `starrocks-admin-query-monitor` | starrocks_admin_query_monitor/SKILL.md |
+| `starrocks-admin-security` | starrocks_admin_security/SKILL.md |
+| `starrocks-admin-backup-restore` | starrocks_admin_backup_restore/SKILL.md |
+
+### Group 2 — DDL & Table Design (5)
+
+| Скилл | Файл |
+|-------|------|
+| `starrocks-ddl-table-types` | starrocks_ddl_table_types/SKILL.md |
+| `starrocks-partitioning` | starrocks_partitioning/SKILL.md |
+| `starrocks-bucketing` | starrocks_bucketing/SKILL.md |
+| `starrocks-materialized-views` | starrocks_materialized_views/SKILL.md |
+| `starrocks-data-modeling` | starrocks_data_modeling/SKILL.md |
+
+### Group 3 — Query Optimization (9)
+
+| Скилл | Файл |
+|-------|------|
+| `starrocks-admin-storage-balancer` | starrocks_admin_storage_balancer/SKILL.md |
+| `starrocks-schema-evolution` | starrocks_schema_evolution/SKILL.md |
+| `starrocks-realtime-modeling` | starrocks_realtime_modeling/SKILL.md |
+| `starrocks-query-optimizer` | starrocks_query_optimizer/SKILL.md |
+| `starrocks-explain-plan` | starrocks_explain_plan/SKILL.md |
+| `starrocks-join-optimization` | starrocks_join_optimization/SKILL.md |
+| `starrocks-aggregation-optimizer` | starrocks_aggregation_optimizer/SKILL.md |
+| `starrocks-memory-tuning` | starrocks_memory_tuning/SKILL.md |
+| `starrocks-concurrency-optimizer` | starrocks_concurrency_optimizer/SKILL.md |
+
+### Group 4 — Ingestion (6)
+
+| Скилл | Файл |
+|-------|------|
+| `starrocks-cbo` | starrocks_cbo/SKILL.md |
+| `starrocks-stream-load` | starrocks_stream_load/SKILL.md |
+| `starrocks-routine-load-kafka` | starrocks_routine_load_kafka/SKILL.md |
+| `starrocks-broker-load` | starrocks_broker_load/SKILL.md |
+| `starrocks-files-ingestion` | starrocks_files_ingestion/SKILL.md |
+| `starrocks-cdc-pipeline` | starrocks_cdc_pipeline/SKILL.md |
+
+### Group 5 — Airflow + StarRocks (5)
+
+| Скилл | Файл |
+|-------|------|
+| `airflow-starrocks-pipeline` | airflow_starrocks_pipeline/SKILL.md |
+| `airflow-starrocks-etl-best-practices` | airflow_starrocks_etl_best_practices/SKILL.md |
+| `airflow-starrocks-cdc-orchestrator` | airflow_starrocks_cdc_orchestrator/SKILL.md |
+| `airflow-starrocks-data-quality` | airflow_starrocks_data_quality/SKILL.md |
+| `airflow-starrocks-backfill` | airflow_starrocks_backfill/SKILL.md |
+
+### Group 6 — StarRocks Pipeline (4)
+
+| Скилл | Файл |
+|-------|------|
+| `starrocks-medallion-architecture` | starrocks_medallion_architecture/SKILL.md |
+| `starrocks-realtime-analytics` | starrocks_realtime_analytics/SKILL.md |
+| `starrocks-lakehouse-integration` | starrocks_lakehouse_integration/SKILL.md |
+| `starrocks-data-quality-guardian` | starrocks_data_quality_guardian/SKILL.md |
+
+### Group 7 — dbt + StarRocks (5)
+
+| Скилл | Файл |
+|-------|------|
+| `dbt-starrocks-models` | dbt_starrocks_models/SKILL.md |
+| `dbt-starrocks-performance` | dbt_starrocks_performance/SKILL.md |
+| `dbt-starrocks-testing` | dbt_starrocks_testing/SKILL.md |
+| `dbt-starrocks-semantic-layer` | dbt_starrocks_semantic_layer/SKILL.md |
+| `dbt-starrocks-production-readiness` | dbt_starrocks_production_readiness/SKILL.md |
+
+### Group 8 — AI-Agent Skills (3)
+
+| Скилл | Файл |
+|-------|------|
+| `starrocks-ai-query-autotuner` | starrocks_ai_query_autotuner/SKILL.md |
+| `starrocks-ai-incident-rca` | starrocks_ai_incident_rca/SKILL.md |
+| `starrocks-self-healing` | starrocks_self_healing/SKILL.md |

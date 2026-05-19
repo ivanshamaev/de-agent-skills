@@ -101,6 +101,55 @@ A skill must be self-contained: it cannot assume other skills are loaded simulta
 | `de_postmortem` | DE blameless postmortem — severity matrix (SEV 1-4), full Markdown postmortem template, 3 complete filled-in examples (Kafka rebalance SLA breach/dbt incremental data loss/ClickHouse schema mutation), CAPA framework (detection/prevention/response/process), impact quantification SQL, stakeholder communication templates (SEV-1/SEV-2), 60-min facilitation guide with blame-redirect table, postmortem review checklist (15 items), Git-based postmortem repository layout, quarterly review frequency analysis |
 | `mage_ai` | Mage AI pipelines — project structure (io_config.yaml/metadata.yaml/triggers.yaml), block types (@data_loader/@transformer/@data_exporter/@sensor/@custom), hybrid SQL+Python blocks with Jinja ({{ df_1 }}/{{ variables.get() }}), pipeline metadata YAML (blocks/executor_type/variables), schedule/event/API triggers, backfills, dbt integration (dbt blocks in pipeline), Spark executor type, streaming pipelines (Kafka source/sink), on_success/on_failure callbacks, Docker Compose + Kubernetes deployment |
 
+## StarRocks Group Skills (`group_skills/starrocks_group_skills/`)
+
+42 StarRocks skills in 8 groups. Each skill is at `group_skills/starrocks_group_skills/<name>/SKILL.md`.
+
+| Skill | Topic |
+|-------|-------|
+| `starrocks_admin_cluster_health` | FE/BE health (SHOW FRONTENDS/BACKENDS), heartbeat, alive check, disk space, memory alerts |
+| `starrocks_admin_compaction` | Compaction types (base/cumulative), score monitoring, ADMIN COMPACT, tuning |
+| `starrocks_admin_query_monitor` | SHOW PROCESSLIST, kill queries, audit log, resource group assignment |
+| `starrocks_admin_security` | RBAC (CREATE USER/ROLE/GRANT), row-level security, audit log, network policy |
+| `starrocks_admin_backup_restore` | BACKUP/RESTORE to S3/HDFS, snapshot policy, cross-cluster migration |
+| `starrocks_admin_storage_balancer` | Tablet distribution, rebalance after BE add/remove, storage tier migration |
+| `starrocks_ddl_table_types` | Duplicate/Aggregate/Unique/Primary Key DDL, PROPERTIES, when to use each |
+| `starrocks_partitioning` | RANGE/LIST/expression partitioning, dynamic partitions, ADD/DROP PARTITION |
+| `starrocks_bucketing` | HASH vs RANDOM bucketing, bucket count formula, colocate groups |
+| `starrocks_materialized_views` | Sync MV (query rewrite), Async MV (scheduled/triggered refresh), SHOW MV |
+| `starrocks_data_modeling` | Star/snowflake schema on StarRocks, fact/dim DDL, SCD2 with PK tables |
+| `starrocks_schema_evolution` | ADD/DROP/MODIFY COLUMN, schema change types (light/medium/heavy), in-flight load behavior |
+| `starrocks_realtime_modeling` | Primary Key table CDC upsert patterns, partial update, DELETE via __op |
+| `starrocks_query_optimizer` | CBO, runtime filters, join reorder, pipeline execution, query hints |
+| `starrocks_explain_plan` | EXPLAIN/EXPLAIN COSTS reading, OlapScanNode/HashJoin/Agg nodes, cost interpretation |
+| `starrocks_join_optimization` | Broadcast/shuffle/colocate join, join hints (LEADING/JOIN_METHOD), skew handling |
+| `starrocks_aggregation_optimizer` | GROUP BY optimization, pre-aggregation MV, streaming vs blocking agg |
+| `starrocks_memory_tuning` | BE memory config (mem_limit/pipeline_executor), OOM prevention, memory pool |
+| `starrocks_concurrency_optimizer` | Resource groups (cpu/mem/concurrency), short_query group, pipeline parallelism |
+| `starrocks_cbo` | ANALYZE TABLE syntax, AUTO ANALYZE, _statistics_ tables, histogram, EXPLAIN COSTS reading |
+| `starrocks_stream_load` | HTTP PUT API, CSV/JSON headers, partial_update, label idempotency, Python loader |
+| `starrocks_routine_load_kafka` | CREATE ROUTINE LOAD DDL, all PROPERTIES/KAFKA params, CDC upsert, PAUSE/RESUME/ALTER |
+| `starrocks_broker_load` | LOAD DATA from S3/HDFS/GCS/MinIO, credential patterns, SHOW LOAD polling, Airflow DAG |
+| `starrocks_files_ingestion` | FILES() table function, CREATE EXTERNAL CATALOG (HMS/Glue/REST/MinIO), Iceberg write-back |
+| `starrocks_cdc_pipeline` | Debezium→Kafka→Routine Load, Flink CDC→StarRocks Flink Connector, multi-table fan-out, DLQ |
+| `airflow_starrocks_pipeline` | MySqlHook for DDL/DML, Broker Load trigger+poll, Stream Load HTTP, Routine Load lifecycle |
+| `airflow_starrocks_etl_best_practices` | Idempotent DAGs (INSERT OVERWRITE/deterministic labels), retry/backoff, SLA, partition mgmt |
+| `airflow_starrocks_cdc_orchestrator` | Watermark-based incremental sync, Routine Load health DAG, Flink job REST, DLQ reprocess |
+| `airflow_starrocks_data_quality` | Post-load DQ gates: row count, freshness, null rate, volume z-score, referential integrity |
+| `airflow_starrocks_backfill` | Historical partition reprocessing, catchup DAG, date-range backfill, INSERT OVERWRITE safety |
+| `starrocks_medallion_architecture` | Bronze (Duplicate Key) → Silver (Primary Key) → Gold (Aggregate Key/MV) DDL+DML patterns |
+| `starrocks_realtime_analytics` | Kafka→Routine Load→PK table, low-latency BI, async MV pre-aggregation, resource group isolation |
+| `starrocks_lakehouse_integration` | Iceberg/Hive/Delta external catalogs, cross-catalog INSERT, partition pushdown, Iceberg write-back |
+| `starrocks_data_quality_guardian` | Freshness/duplicate/null/volume/referential integrity SQL checks, Python DQ scanner |
+| `dbt_starrocks_models` | dbt-starrocks adapter, profiles.yml, all materializations, incremental strategies, StarRocks DDL config |
+| `dbt_starrocks_performance` | Partition-aware incremental filters, ANALYZE post-hook, query hints in dbt SQL, thread tuning |
+| `dbt_starrocks_testing` | Generic tests, singular SQL assertions, source freshness, dbt-expectations, store_failures |
+| `dbt_starrocks_semantic_layer` | MetricFlow on StarRocks, semantic model DDL, metric definitions, saved queries, exposures |
+| `dbt_starrocks_production_readiness` | Slim CI (state:modified+/--defer), RBAC for dbt, secrets in profiles.yml, Airflow dbt operator |
+| `starrocks_ai_query_autotuner` | Autonomous SQL optimizer: EXPLAIN COSTS parsing, anti-pattern classifier, MV recommendation, hints |
+| `starrocks_ai_incident_rca` | BE OOM/Routine Load pause/query timeout RCA agent, structured incident report generator |
+| `starrocks_self_healing` | Auto-restart paused Routine Loads, compaction backlog healing, stale stats auto-ANALYZE, partition cleanup |
+
 ## Existing Specs
 
 | Spec | Topic |

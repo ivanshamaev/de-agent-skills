@@ -40,7 +40,8 @@
       "WebFetch(domain:ahmed-mokbel.medium.com)",
       "WebFetch(domain:duckdb.org)",
       "WebFetch(domain:motherduck.com)",
-      "WebFetch(domain:www.marktechpost.com)"
+      "WebFetch(domain:www.marktechpost.com)",
+      "WebFetch(domain:docs.starrocks.io)"
     ],
     "additionalDirectories": [
       "/home/ivan/de-agent-skills/skills"
