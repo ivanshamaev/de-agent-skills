@@ -1,0 +1,371 @@
+---
+name: platform-engineering-internal-developer-platform
+description: Internal Developer Platform (IDP) for data engineering — Backstage Software Catalog (catalog-info.yaml for pipelines/datasets/services), Software Templates (scaffold new DAG/dbt project/Kafka topic), TechDocs integration, golden path enforcement, Port.io alternative, self-service data pipeline provisioning, platform scorecard (production readiness checks), team ownership model, API gateway for platform services, paved road vs escape hatch pattern
+---
+
+# Internal Developer Platform (IDP) for Data Engineering
+
+## When to Use
+
+- Standardizing how data teams create new pipelines, datasets, and services
+- Building a self-service portal where engineers provision Kafka topics, Airflow DAGs, and dbt models without tickets
+- Enforcing production readiness standards through platform scorecards
+- Creating a searchable catalog of all data assets with ownership and lineage
+- Reducing onboarding time with golden-path templates
+
+---
+
+## Backstage Software Catalog
+
+### catalog-info.yaml for Data Pipeline
+
+```yaml
+# dag-etl-orders/catalog-info.yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: etl-orders
+  title: Orders ETL Pipeline
+  description: "Daily ingestion of orders from Kafka → Silver → Gold"
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    airflow.apache.org/dag-id: etl_orders
+    grafana.com/dashboard-url: https://grafana.internal/d/etl-orders
+    runbook-url: https://wiki.internal/runbooks/etl-orders
+  tags:
+    - airflow
+    - kafka
+    - orders
+    - gold-layer
+  links:
+    - url: https://airflow.internal/dags/etl_orders
+      title: Airflow DAG
+      icon: airflow
+spec:
+  type: pipeline
+  lifecycle: production
+  owner: group:data-engineering
+  system: data-platform
+  dependsOn:
+    - resource:kafka-topic-orders-raw
+    - component:kafka-platform
+  providesApis:
+    - gold-orders-api
+
+---
+# Dataset entity
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: gold-fact-orders
+  description: "Gold layer orders fact table — daily partitioned"
+  annotations:
+    datahub.io/urn: "urn:li:dataset:(urn:li:dataPlatform:trino,gold.fact_orders,PROD)"
+  tags:
+    - gold-layer
+    - iceberg
+    - pii-free
+spec:
+  type: dataset
+  owner: group:data-engineering
+  system: data-platform
+  dependsOn:
+    - component:etl-orders
+```
+
+### Kafka Topic Entity
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: kafka-topic-orders-raw
+  description: "Raw orders events from order service — Avro schema"
+  annotations:
+    schema-registry-url: https://schema-registry.internal/subjects/orders-raw-value
+spec:
+  type: kafka-topic
+  owner: group:platform-engineering
+  system: kafka-platform
+```
+
+---
+
+## Software Templates (Golden Path)
+
+### New Airflow DAG Template
+
+```yaml
+# backstage/templates/airflow-dag/template.yaml
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: airflow-dag
+  title: New Airflow DAG
+  description: Scaffold a production-ready Airflow DAG with DQ checks, SLA callback, and idempotent tasks
+  tags:
+    - airflow
+    - data-engineering
+spec:
+  owner: group:platform-engineering
+  type: pipeline
+  parameters:
+    - title: DAG Configuration
+      required:
+        - dag_id
+        - schedule
+        - owner_team
+        - slack_channel
+      properties:
+        dag_id:
+          title: DAG ID
+          type: string
+          pattern: '^[a-z][a-z0-9_]*$'
+          description: "Snake_case DAG identifier (e.g., etl_orders)"
+        schedule:
+          title: Schedule
+          type: string
+          description: "Cron expression (e.g., 0 2 * * *)"
+        owner_team:
+          title: Owner Team
+          type: string
+          enum: [data-engineering, analytics, platform-engineering]
+        slack_channel:
+          title: Failure Alert Channel
+          type: string
+          description: "#channel-name for failure alerts"
+        source_kafka_topic:
+          title: Source Kafka Topic (optional)
+          type: string
+        target_trino_table:
+          title: Target Trino Table
+          type: string
+          description: "schema.table_name in Gold layer"
+
+  steps:
+    - id: fetch-template
+      name: Fetch Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          dag_id: ${{ parameters.dag_id }}
+          schedule: ${{ parameters.schedule }}
+          owner_team: ${{ parameters.owner_team }}
+          slack_channel: ${{ parameters.slack_channel }}
+          source_topic: ${{ parameters.source_kafka_topic }}
+          target_table: ${{ parameters.target_trino_table }}
+
+    - id: create-pr
+      name: Open Pull Request
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?repo=data-platform-dags&owner=myorg
+        title: "feat: new DAG ${{ parameters.dag_id }}"
+        branchName: "feat/dag-${{ parameters.dag_id }}"
+        description: |
+          Auto-generated by Internal Developer Platform
+          Owner: ${{ parameters.owner_team }}
+        sourcePath: ./
+        targetPath: dags/${{ parameters.dag_id }}
+
+    - id: register-catalog
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['create-pr'].output.repoContentsUrl }}
+        catalogInfoPath: /dags/${{ parameters.dag_id }}/catalog-info.yaml
+```
+
+### DAG Skeleton Template
+
+```python
+# backstage/templates/airflow-dag/skeleton/dags/${{values.dag_id}}/dag.py
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.utils.dates import days_ago
+import pendulum
+
+with DAG(
+    dag_id="${{values.dag_id}}",
+    schedule="${{values.schedule}}",
+    start_date=pendulum.datetime(2024, 1, 1),
+    catchup=False,
+    default_args={
+        "owner": "${{values.owner_team}}",
+        "retries": 3,
+        "retry_delay": pendulum.duration(minutes=5),
+        "on_failure_callback": lambda ctx: send_slack_failure(
+            ctx, channel="${{values.slack_channel}}"
+        ),
+    },
+    tags=["${{values.owner_team}}", "generated"],
+    sla_miss_callback=lambda dag, task_list, blocking_task_list, slas, blocking_tis:
+        notify_sla_breach(dag, "${{values.slack_channel}}"),
+) as dag:
+
+    def extract(**kwargs):
+        # TODO: implement extraction from ${{values.source_topic}}
+        pass
+
+    def transform(**kwargs):
+        # TODO: implement transformation
+        pass
+
+    def load(**kwargs):
+        # INSERT OVERWRITE for idempotency
+        # TODO: implement load to ${{values.target_table}}
+        pass
+
+    t_extract = PythonOperator(task_id="extract", python_callable=extract)
+    t_transform = PythonOperator(task_id="transform", python_callable=transform)
+    t_load = PythonOperator(task_id="load", python_callable=load)
+
+    t_extract >> t_transform >> t_load
+```
+
+---
+
+## Platform Scorecard (Production Readiness)
+
+```python
+# platform_scorecard.py — evaluate production readiness of a data pipeline
+from dataclasses import dataclass
+
+@dataclass
+class ScorecardCheck:
+    name: str
+    description: str
+    weight: int   # 1-3 (3 = critical)
+    fn: callable   # returns (passed: bool, details: str)
+
+PIPELINE_SCORECARD = [
+    ScorecardCheck("catalog_entry", "Component has catalog-info.yaml", 3,
+        lambda dag_id: (check_catalog_entity_exists(dag_id), "")),
+    ScorecardCheck("sla_defined", "SLA callback configured", 3,
+        lambda dag_id: (check_sla_callback(dag_id), "")),
+    ScorecardCheck("idempotent_loads", "Uses INSERT OVERWRITE or upsert", 3,
+        lambda dag_id: (check_idempotent_pattern(dag_id), "")),
+    ScorecardCheck("retries_configured", "Retries >= 2 with backoff", 2,
+        lambda dag_id: (check_retry_config(dag_id), "")),
+    ScorecardCheck("dq_gate", "Has data quality check task", 2,
+        lambda dag_id: (check_has_dq_task(dag_id), "")),
+    ScorecardCheck("on_failure_callback", "Has Slack/PagerDuty failure notification", 2,
+        lambda dag_id: (check_failure_callback(dag_id), "")),
+    ScorecardCheck("no_top_level_code", "No database calls at DAG parse time", 3,
+        lambda dag_id: (check_no_top_level_calls(dag_id), "")),
+    ScorecardCheck("runbook_linked", "Runbook URL in catalog-info.yaml annotations", 1,
+        lambda dag_id: (check_runbook_annotation(dag_id), "")),
+    ScorecardCheck("owner_group", "Owner is a team group, not an individual", 2,
+        lambda dag_id: (check_group_owner(dag_id), "")),
+    ScorecardCheck("documentation", "TechDocs or README present", 1,
+        lambda dag_id: (check_docs_present(dag_id), "")),
+]
+
+def run_scorecard(dag_id: str) -> dict:
+    total_weight = sum(c.weight for c in PIPELINE_SCORECARD)
+    passed_weight = 0
+    results = []
+
+    for check in PIPELINE_SCORECARD:
+        passed, details = check.fn(dag_id)
+        if passed:
+            passed_weight += check.weight
+        results.append({
+            "check": check.name,
+            "description": check.description,
+            "weight": check.weight,
+            "passed": passed,
+            "details": details,
+        })
+
+    score = round(passed_weight / total_weight * 100)
+    return {
+        "dag_id": dag_id,
+        "score": score,
+        "level": "gold" if score >= 90 else "silver" if score >= 70 else "bronze",
+        "results": results,
+        "failed_critical": [r for r in results if not r["passed"] and r["weight"] == 3],
+    }
+```
+
+---
+
+## Self-Service Kafka Topic Provisioning
+
+```python
+# FastAPI endpoint for self-service topic creation
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, validator
+import subprocess, json
+
+app = FastAPI(title="Platform Self-Service API")
+
+class KafkaTopicRequest(BaseModel):
+    name: str                    # prod.{domain}.{entity}.v{N}
+    partitions: int
+    retention_hours: int = 168
+    owner_team: str
+    purpose: str
+
+    @validator("name")
+    def validate_naming(cls, v):
+        import re
+        if not re.match(r'^(prod|staging|dev)\.[a-z]+\.[a-z_]+\.v\d+$', v):
+            raise ValueError("Topic name must match: {env}.{domain}.{entity}.v{N}")
+        return v
+
+    @validator("partitions")
+    def validate_partitions(cls, v):
+        if v < 1 or v > 100:
+            raise ValueError("Partitions must be between 1 and 100")
+        return v
+
+@app.post("/api/v1/kafka/topics")
+async def create_topic(req: KafkaTopicRequest):
+    # Check if topic already exists
+    existing = subprocess.run(
+        ["kafka-topics.sh", "--bootstrap-server", KAFKA_BOOTSTRAP,
+         "--describe", "--topic", req.name],
+        capture_output=True
+    )
+    if existing.returncode == 0:
+        raise HTTPException(status_code=409, detail=f"Topic {req.name} already exists")
+
+    # Create topic
+    result = subprocess.run([
+        "kafka-topics.sh", "--bootstrap-server", KAFKA_BOOTSTRAP,
+        "--create", "--topic", req.name,
+        "--partitions", str(req.partitions),
+        "--replication-factor", "3",
+        "--config", f"min.insync.replicas=2",
+        "--config", f"retention.ms={req.retention_hours * 3600000}",
+    ], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        raise HTTPException(status_code=500, detail=result.stderr)
+
+    # Register in Backstage catalog
+    _register_topic_entity(req)
+
+    return {"topic": req.name, "partitions": req.partitions, "status": "created"}
+```
+
+---
+
+## Anti-Patterns
+
+1. **IDP as a ticket system** — if the IDP generates a Jira ticket instead of actually provisioning the resource, engineers will go around it; automate the action, not the request.
+2. **Golden path without an escape hatch** — teams with unusual requirements get blocked if there's no way to deviate from the template; document the escape hatch process.
+3. **Scorecard without consequences** — a scorecard that doesn't block promotion to production is decorative; gate production promotion on "silver" level minimum.
+4. **Templates that go stale** — template code that doesn't get security/dependency updates becomes a liability; treat templates as first-class code with CI/CD and automated dependency updates.
+5. **Catalog without ownership enforcement** — stale catalog entries with departed engineers as owners create confusion; auto-flag components with no active owner for 30 days.
+
+---
+
+## References
+
+- Backstage: `backstage.io/docs/overview/what-is-backstage`
+- Backstage Software Templates: `backstage.io/docs/features/software-templates/`
+- Port.io alternative: `docs.getport.io/`
+- Related skills: `[[platform-engineering-data-platform-api]]`, `[[dataops-airflow-production-readiness]]`, `[[github-actions-dataops]]`

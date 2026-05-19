@@ -298,3 +298,99 @@
 | `starrocks-ai-query-autotuner` | starrocks_ai_query_autotuner/SKILL.md |
 | `starrocks-ai-incident-rca` | starrocks_ai_incident_rca/SKILL.md |
 | `starrocks-self-healing` | starrocks_self_healing/SKILL.md |
+
+---
+
+## 10. Infra & DataOps Group Skills (`group_skills/infra_dataops_group_skills/`)
+
+50 skills across 8 groups covering infrastructure review, DataOps automation, observability, AIOps, and platform engineering.
+
+### Group 1 — Terraform & IaC (3)
+
+| Скилл | Файл |
+|-------|------|
+| `infra-terraform-review` | infra_terraform_review/SKILL.md |
+| `infra-terraform-security-scan` | infra_terraform_security_scan/SKILL.md |
+| `infra-terraform-cost-estimator` | infra_terraform_cost_estimator/SKILL.md |
+
+### Group 2 — CI/CD & Deployment (7)
+
+| Скилл | Файл |
+|-------|------|
+| `infra-gitops-deployment-review` | infra_gitops_deployment_review/SKILL.md |
+| `dataops-cicd-pipeline-review` | dataops_cicd_pipeline_review/SKILL.md |
+| `dataops-github-actions-optimizer` | dataops_github_actions_optimizer/SKILL.md |
+| `dataops-jenkins-modernization` | dataops_jenkins_modernization/SKILL.md |
+| `dataops-blue-green-deployment` | dataops_blue_green_deployment/SKILL.md |
+| `dataops-release-readiness-review` | dataops_release_readiness_review/SKILL.md |
+| `infra-docker-best-practices` | infra_docker_best_practices/SKILL.md |
+
+### Group 3 — Airflow & Orchestration (5)
+
+| Скилл | Файл |
+|-------|------|
+| `dataops-airflow-production-readiness` | dataops_airflow_production_readiness/SKILL.md |
+| `dataops-airflow-ha-review` | dataops_airflow_ha_review/SKILL.md |
+| `dataops-airflow-observability` | dataops_airflow_observability/SKILL.md |
+| `dataops-airflow-cost-optimizer` | dataops_airflow_cost_optimizer/SKILL.md |
+| `dataops-workflow-orchestration-review` | dataops_workflow_orchestration_review/SKILL.md |
+
+### Group 4 — Observability & Monitoring (6)
+
+| Скилл | Файл |
+|-------|------|
+| `infra-observability-stack-review` | infra_observability_stack_review/SKILL.md |
+| `infra-prometheus-optimization` | infra_prometheus_optimization/SKILL.md |
+| `infra-grafana-dashboard-review` | infra_grafana_dashboard_review/SKILL.md |
+| `infra-opentelemetry-instrumentation` | infra_opentelemetry_instrumentation/SKILL.md |
+| `infra-alert-fatigue-reduction` | infra_alert_fatigue_reduction/SKILL.md |
+| `dataops-sla-monitoring` | dataops_sla_monitoring/SKILL.md |
+
+### Group 5 — Cloud & Security (9)
+
+| Скилл | Файл |
+|-------|------|
+| `infra-aws-data-platform-review` | infra_aws_data_platform_review/SKILL.md |
+| `infra-gcp-data-platform-review` | infra_gcp_data_platform_review/SKILL.md |
+| `infra-azure-data-platform-review` | infra_azure_data_platform_review/SKILL.md |
+| `infra-multi-cloud-governance` | infra_multi_cloud_governance/SKILL.md |
+| `infra-secrets-management-review` | infra_secrets_management_review/SKILL.md |
+| `infra-rbac-audit` | infra_rbac_audit/SKILL.md |
+| `infra-network-security-review` | infra_network_security_review/SKILL.md |
+| `infra-compliance-readiness` | infra_compliance_readiness/SKILL.md |
+| `infra-kubernetes-security-audit` | infra_kubernetes_security_audit/SKILL.md |
+
+### Group 6 — Kubernetes (4)
+
+| Скилл | Файл |
+|-------|------|
+| `infra-kubernetes-cluster-health` | infra_kubernetes_cluster_health/SKILL.md |
+| `infra-kubernetes-autoscaling-review` | infra_kubernetes_autoscaling_review/SKILL.md |
+| `infra-kubernetes-cost-optimizer` | infra_kubernetes_cost_optimizer/SKILL.md |
+| `infra-kubernetes-storage-review` | infra_kubernetes_storage_review/SKILL.md |
+
+### Group 7 — DataOps Reliability (7)
+
+| Скилл | Файл |
+|-------|------|
+| `dataops-root-cause-analysis` | dataops_root_cause_analysis/SKILL.md |
+| `dataops-postmortem-generator` | dataops_postmortem_generator/SKILL.md |
+| `dataops-self-healing-platform` | dataops_self_healing_platform/SKILL.md |
+| `dataops-disaster-recovery-review` | dataops_disaster_recovery_review/SKILL.md |
+| `infra-kafka-platform-review` | infra_kafka_platform_review/SKILL.md |
+| `infra-kafka-cost-optimizer` | infra_kafka_cost_optimizer/SKILL.md |
+| `infra-streaming-reliability-review` | infra_streaming_reliability_review/SKILL.md |
+
+### Group 8 — AIOps & Platform Engineering (9)
+
+| Скилл | Файл |
+|-------|------|
+| `aiops-infrastructure-anomaly-detection` | aiops_infrastructure_anomaly_detection/SKILL.md |
+| `aiops-autonomous-incident-response` | aiops_autonomous_incident_response/SKILL.md |
+| `aiops-capacity-planning-agent` | aiops_capacity_planning_agent/SKILL.md |
+| `aiops-query-cost-analyzer` | aiops_query_cost_analyzer/SKILL.md |
+| `aiops-platform-optimization-agent` | aiops_platform_optimization_agent/SKILL.md |
+| `aiops-observability-copilot` | aiops_observability_copilot/SKILL.md |
+| `platform-engineering-internal-developer-platform` | platform_engineering_internal_developer_platform/SKILL.md |
+| `platform-engineering-data-platform-api` | platform_engineering_data_platform_api/SKILL.md |
+| `platform-engineering-agentic-control-plane` | platform_engineering_agentic_control_plane/SKILL.md |

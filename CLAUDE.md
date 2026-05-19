@@ -100,6 +100,7 @@ A skill must be self-contained: it cannot assume other skills are loaded simulta
 | `de_cost_optimization` | DE cost optimization — Trino system.runtime.query_history cost SQL, Spark UI signals + dynamic allocation formula, ClickHouse system.query_log analysis, BigQuery INFORMATION_SCHEMA.JOBS_BY_PROJECT, compute right-sizing (GB/core ratios, HPA YAML), spot instance strategy (SIGTERM handler, multi-AZ fleet), S3 tiered storage lifecycle (Terraform HCL), partition/compaction/Z-ORDER economics, materialized view break-even formula, data lifecycle retention matrix, cost attribution tagging, AWS Budgets Terraform, FinOps KPIs |
 | `de_postmortem` | DE blameless postmortem — severity matrix (SEV 1-4), full Markdown postmortem template, 3 complete filled-in examples (Kafka rebalance SLA breach/dbt incremental data loss/ClickHouse schema mutation), CAPA framework (detection/prevention/response/process), impact quantification SQL, stakeholder communication templates (SEV-1/SEV-2), 60-min facilitation guide with blame-redirect table, postmortem review checklist (15 items), Git-based postmortem repository layout, quarterly review frequency analysis |
 | `mage_ai` | Mage AI pipelines — project structure (io_config.yaml/metadata.yaml/triggers.yaml), block types (@data_loader/@transformer/@data_exporter/@sensor/@custom), hybrid SQL+Python blocks with Jinja ({{ df_1 }}/{{ variables.get() }}), pipeline metadata YAML (blocks/executor_type/variables), schedule/event/API triggers, backfills, dbt integration (dbt blocks in pipeline), Spark executor type, streaming pipelines (Kafka source/sink), on_success/on_failure callbacks, Docker Compose + Kubernetes deployment |
+| `mcp_server` | MCP (Model Context Protocol) server development — FastMCP/Python SDK, tools/resources/prompts primitives, STDIO and Streamable HTTP transports, Claude Desktop/Claude Code client config, MCP Inspector testing, security best practices (input validation/OAuth2/confused deputy prevention), Docker/Kubernetes deployment, data platform integration |
 
 ## StarRocks Group Skills (`group_skills/starrocks_group_skills/`)
 
@@ -149,6 +150,63 @@ A skill must be self-contained: it cannot assume other skills are loaded simulta
 | `starrocks_ai_query_autotuner` | Autonomous SQL optimizer: EXPLAIN COSTS parsing, anti-pattern classifier, MV recommendation, hints |
 | `starrocks_ai_incident_rca` | BE OOM/Routine Load pause/query timeout RCA agent, structured incident report generator |
 | `starrocks_self_healing` | Auto-restart paused Routine Loads, compaction backlog healing, stale stats auto-ANALYZE, partition cleanup |
+
+## Infra & DataOps Group Skills (`group_skills/infra_dataops_group_skills/`)
+
+50 skills across 8 groups. Each skill is at `group_skills/infra_dataops_group_skills/<name>/SKILL.md`.
+
+| Skill | Topic |
+|-------|-------|
+| `infra_terraform_review` | Terraform module structure, variable validation, locals, remote state, Terragrunt DRY config |
+| `infra_terraform_security_scan` | tfsec/Checkov IaC security scanning, SARIF output, pre-commit hooks, S3/security group hardening |
+| `infra_terraform_cost_estimator` | Infracost PR cost diff, budget gates, FinOps tagging OPA policy |
+| `infra_gitops_deployment_review` | ArgoCD Application/AppProject YAML, app-of-apps, FluxCD HelmRelease, Argo Rollouts canary |
+| `dataops_cicd_pipeline_review` | dbt slim CI (state:modified+/--defer), Airflow DagBag validation, environment promotion gates |
+| `dataops_github_actions_optimizer` | GHA cache optimization (type=gha), OIDC for AWS/GCP, concurrency groups, cancel-in-progress |
+| `dataops_jenkins_modernization` | Declarative Pipeline with Kaniko, Shared Library, withCredentials, JCasC YAML |
+| `dataops_blue_green_deployment` | kubectl patch service selector swap, dbt swap_schema macro, backward-compatible migration phases |
+| `dataops_release_readiness_review` | go_no_go_check.py, data reconciliation SQL, post-release checkpoints |
+| `infra_docker_best_practices` | Multi-stage Dockerfiles, BuildKit secrets, non-root user, .dockerignore, image scanning |
+| `dataops_airflow_production_readiness` | Idempotent tasks, no top-level code, KubernetesExecutor, pool management, metadata DB maintenance |
+| `dataops_airflow_ha_review` | Multi-scheduler with PgBouncer, git-sync sidecar, triggerer replicas, HA checklist |
+| `dataops_airflow_observability` | statsd-exporter mapping, PromQL P95 task duration, OtelLogHandler trace_id injection |
+| `dataops_airflow_cost_optimizer` | KEDA Redis scaler, S3 lifecycle for logs, metadata DB cleanup SQL, cost estimation |
+| `dataops_workflow_orchestration_review` | Airflow vs Prefect vs Dagster vs Temporal comparison, event-driven triggering, migration patterns |
+| `infra_observability_stack_review` | OTel Collector full config, LGTM stack (Loki/Grafana/Tempo/Mimir), Pyrra SLO CRD, LogQL |
+| `infra_prometheus_optimization` | TSDB cardinality API, recording rule naming, AlertManager inhibition, remote write queue_config |
+| `infra_grafana_dashboard_review` | Variable label_values() JSON, stat panels, Kafka lag table, Terraform grafana_rule_group |
+| `infra_opentelemetry_instrumentation` | start_as_current_span, Airflow XCom context propagation, Kafka header propagation |
+| `infra_alert_fatigue_reduction` | Multi-window burn rate alerts (14.4×), AlertManager inhibit_rules, storm suppression |
+| `infra_aws_data_platform_review` | S3 SSE-KMS, IRSA, MSK min.insync.replicas=2, Lake Formation column grants |
+| `infra_gcp_data_platform_review` | GCS uniform bucket access, BigQuery PII masking (data policy), Workload Identity |
+| `infra_azure_data_platform_review` | ADLS Gen2 HNS, AKS federated credentials, Event Hubs Kafka protocol, Key Vault network ACLs |
+| `infra_multi_cloud_governance` | Vault auth backends per cloud, rclone cross-cloud sync, Iceberg open format, OPA cross-cloud policy |
+| `infra_secrets_management_review` | Vault dynamic DB credentials, External Secrets Operator ClusterSecretStore, gitleaks pre-commit |
+| `infra_rbac_audit` | Python audit_rbac() cluster-admin/wildcard scan, AWS Access Analyzer, GCP owner role detection |
+| `infra_network_security_review` | K8s NetworkPolicy default-deny, Kafka TLS, Istio PeerAuthentication + AuthorizationPolicy |
+| `infra_compliance_readiness` | SOC2 control mapping YAML, GDPR erasure handler, kube-bench Job YAML, OPA rego policies |
+| `infra_kubernetes_security_audit` | PodSecurityAdmission, container securityContext, network policies, image scanning |
+| `infra_kubernetes_cluster_health` | Node resource utilization, pod restart detection, PVC pressure, cluster health score |
+| `infra_kubernetes_autoscaling_review` | HPA v2 (CPU/memory/custom metrics), VPA recommendations, KEDA ScaledObject, cluster autoscaler |
+| `infra_kubernetes_cost_optimizer` | Idle pod/namespace detection, spot instance strategy, resource request right-sizing |
+| `infra_kubernetes_storage_review` | PVC lifecycle, StorageClass selection, CSI drivers, backup (Velero), volume snapshots |
+| `dataops_sla_monitoring` | SLA definition YAML catalog, freshness recording rules, error budget tracking, consumer notification |
+| `dataops_root_cause_analysis` | Failure taxonomy tree, Airflow diagnosis SQL, z-score volume anomaly, timeline reconstruction |
+| `dataops_postmortem_generator` | Blameless postmortem template, severity matrix, CAPA framework, 60-min facilitation guide |
+| `dataops_self_healing_platform` | Auto-restart DAGs (circuit breaker), gap detection backfill, DQ quarantine, watchdog heartbeat |
+| `dataops_disaster_recovery_review` | RTO/RPO YAML, pg_dump backup/restore, Strimzi MirrorMaker2, Velero, DR failover runbook |
+| `infra_kafka_platform_review` | Broker config (KRaft/replication/rack), topic design, cooperative-sticky consumer, SASL_SSL, Strimzi |
+| `infra_kafka_cost_optimizer` | Tiered storage (local.retention.ms vs retention.ms), topic audit, compression savings calculator |
+| `infra_streaming_reliability_review` | Exactly-once (transactions/Kafka Streams EOS), DLQ design+reprocessing, Flink checkpointing |
+| `aiops_infrastructure_anomaly_detection` | Z-score/MAD Prometheus rules, Isolation Forest, Prophet seasonal anomaly, auto threshold tuning |
+| `aiops_autonomous_incident_response` | Claude tool-use agent (kubectl/SQL/Prometheus tools), alert webhook trigger, Slack approval gate |
+| `aiops_capacity_planning_agent` | Prophet resource forecasting, HPA right-sizing from history, Kafka capacity model, S3 storage forecast |
+| `aiops_query_cost_analyzer` | Trino/ClickHouse query cost SQL, LLM rewrite recommendations, cost anomaly detection, chargeback report |
+| `aiops_platform_optimization_agent` | VPA rightsizing auto-apply, idle resource detection, DB maintenance scheduler, LLM prioritization |
+| `aiops_observability_copilot` | NL→PromQL/LogQL translation, alert explanation, log pattern clustering, dashboard auto-generation |
+| `platform_engineering_internal_developer_platform` | Backstage catalog-info.yaml, Software Templates (DAG/dbt/Kafka scaffolding), platform scorecard |
+| `platform_engineering_data_platform_api` | FastAPI with JWT/OAuth2 RBAC, async Trino queries, Kafka topic CRUD, audit logging, HPA deployment |
+| `platform_engineering_agentic_control_plane` | FastMCP server exposing platform tools, multi-agent governance, Claude-based platform assistant |
 
 ## Existing Specs
 
