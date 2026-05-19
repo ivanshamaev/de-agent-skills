@@ -55,7 +55,8 @@
       "WebFetch(domain:grafana.com)",
       "WebFetch(domain:backstage.io)",
       "Bash(read d *)",
-      "Bash([ -f \"/home/ivan/de-agent-skills/group_skills/infra_dataops_group_skills/$d/SKILL.md\" ])"
+      "Bash([ -f \"/home/ivan/de-agent-skills/group_skills/infra_dataops_group_skills/$d/SKILL.md\" ])",
+      "WebFetch(domain:docs.starburst.io)"
     ],
     "additionalDirectories": [
       "/home/ivan/de-agent-skills/skills"
