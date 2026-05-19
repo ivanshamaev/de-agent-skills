@@ -41,7 +41,15 @@
       "WebFetch(domain:duckdb.org)",
       "WebFetch(domain:motherduck.com)",
       "WebFetch(domain:www.marktechpost.com)",
-      "WebFetch(domain:docs.starrocks.io)"
+      "WebFetch(domain:docs.starrocks.io)",
+      "WebFetch(domain:docs.docker.com)",
+      "WebFetch(domain:developer.hashicorp.com)",
+      "WebFetch(domain:www.checkov.io)",
+      "WebFetch(domain:www.infracost.io)",
+      "WebFetch(domain:argo-cd.readthedocs.io)",
+      "WebFetch(domain:docs.github.com)",
+      "WebFetch(domain:www.jenkins.io)",
+      "WebFetch(domain:prometheus.io)"
     ],
     "additionalDirectories": [
       "/home/ivan/de-agent-skills/skills"
