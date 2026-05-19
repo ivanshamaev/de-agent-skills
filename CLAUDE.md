@@ -102,6 +102,33 @@ A skill must be self-contained: it cannot assume other skills are loaded simulta
 | `mage_ai` | Mage AI pipelines — project structure (io_config.yaml/metadata.yaml/triggers.yaml), block types (@data_loader/@transformer/@data_exporter/@sensor/@custom), hybrid SQL+Python blocks with Jinja ({{ df_1 }}/{{ variables.get() }}), pipeline metadata YAML (blocks/executor_type/variables), schedule/event/API triggers, backfills, dbt integration (dbt blocks in pipeline), Spark executor type, streaming pipelines (Kafka source/sink), on_success/on_failure callbacks, Docker Compose + Kubernetes deployment |
 | `mcp_server` | MCP (Model Context Protocol) server development — FastMCP/Python SDK, tools/resources/prompts primitives, STDIO and Streamable HTTP transports, Claude Desktop/Claude Code client config, MCP Inspector testing, security best practices (input validation/OAuth2/confused deputy prevention), Docker/Kubernetes deployment, data platform integration |
 
+## Trino Group Skills (`group_skills/trino_group_skills/`)
+
+20 Trino skills covering the full production lifecycle. Each skill is at `group_skills/trino_group_skills/<name>/SKILL.md`.
+
+| Skill | Topic |
+|-------|-------|
+| `trino_lakehouse_platform_architect` | Coordinator/worker configs, Iceberg catalog setup (HMS/Glue), Kafka connector, Bronze/Silver/Gold DDL, technology selection matrix |
+| `trino_query_optimization` | Predicate/projection/aggregation/join pushdown, CBO with ANALYZE, broadcast vs partitioned joins, dynamic filtering, Iceberg partition pruning, session properties |
+| `trino_explain_plan_review` | EXPLAIN syntax, fragment types (SINGLE/HASH/ROUND_ROBIN/BROADCAST/SOURCE), distributed plan ASCII, EXPLAIN ANALYZE metrics, 5 plan pattern fixes, IO plan JSON |
+| `trino_iceberg_best_practices` | Production DDL, partition transforms, partition evolution, sorted tables, DML/MERGE, maintenance sequence (optimize/expire/orphans), metadata tables, schema evolution, Bloom filters, ANALYZE |
+| `trino_admin_cluster_health` | REST API health endpoints, JMX Prometheus exporter YAML, alert rules (worker loss/queue/OOM/failure rate), query diagnosis, graceful shutdown, worker checklist |
+| `trino_memory_and_spill_tuning` | Memory architecture, properties table, JVM sizing, spill config, exchange buffer, FTE with S3 exchange, OOM diagnosis workflow, memory-intensive operators, sizing quick reference |
+| `trino_resource_group_governance` | Multi-tenant resource groups JSON, all properties, scheduling policies, selector rules with clientTags/queryType/regex, CPU quotas, database-backed config, JMX monitoring |
+| `trino_dbt_platform` | profiles.yml (LDAP/JWT/OAuth), dbt project structure, all materializations, incremental strategies, Iceberg table_properties, snapshots, slim CI |
+| `trino_dbt_query_performance` | Materialization trade-off matrix, incremental bounded watermark, MERGE vs delete+insert, BROADCAST hint, session properties for dbt, ANALYZE post-hooks, small file prevention |
+| `trino_airflow_orchestration` | Connection setup, TrinoOperator, idempotent DELETE+INSERT/MERGE patterns, TrinoHook, partition-aware incremental DAG, dbt+Trino integration, SLA monitoring |
+| `trino_airflow_lakehouse_pipelines` | Full medallion @dag (Bronze→Silver→DQ→Gold→ANALYZE), Iceberg maintenance DAG, dynamic task mapping backfill, watermark tracking, DQ gate Python function |
+| `trino_docker_compose_stack` | Full docker-compose (MinIO+HMS+Trino+Airflow+Superset+Prometheus+Grafana), all config files, .env, quick start commands, dbt dev profiles.yml |
+| `trino_federated_query_architecture` | Connector performance table, cross-catalog JOIN patterns, predicate pushdown strategy, materialization decision matrix, CTAS JDBC→Iceberg, multi-source reporting, catalog isolation |
+| `trino_file_layout_optimization` | Parquet vs ORC, target file size by layer, Parquet row group tuning, sorted files, Bloom filter DDL, small file detection SQL, targeted compaction, split weight properties |
+| `trino_observability_platform` | JMX exporter YAML, Prometheus config with relabeling, 6 alert rules, Grafana panel JSON, slow query event listener Java skeleton, Python REST detection, OpenTelemetry trace propagation |
+| `trino_production_readiness_review` | 6-section checklist (infra/JVM/security/governance/observability/Iceberg), nginx coordinator HA, complete coordinator config.properties, Kubernetes Helm values.yaml, rolling upgrade script |
+| `trino_security_and_governance` | TLS, LDAP/OAuth2/JWT auth, complete rules.json (column masking/row filter/impersonation), group mapping, catalog-level ACL, audit event listener, OPA Rego policy |
+| `trino_cost_optimization` | system.runtime.queries analysis, cost model Python, scan reduction (partition filter/scan limit), compaction economics, Kubernetes HPA, scale-to-zero Airflow, spot+FTE, cost attribution |
+| `trino_self_healing_platform` | HungQueryKiller, MemoryPressureReliever, IcebergCompactionAgent, StaleStatsAnalyzer, Claude-based RCA (haiku-4-5), Airflow self-healing watchdog DAG (every 15 min), Z-score anomaly detection |
+| `trino_modern_data_stack_reference_architecture` | End-to-end MDS: docker-compose (Kafka+MinIO+HMS+Trino+Airflow+dbt+Superset+Prometheus+Grafana), medallion DDL, all pipeline DAGs, dbt project, Prometheus alerts, K8s Helm values, operational runbook |
+
 ## StarRocks Group Skills (`group_skills/starrocks_group_skills/`)
 
 42 StarRocks skills in 8 groups. Each skill is at `group_skills/starrocks_group_skills/<name>/SKILL.md`.

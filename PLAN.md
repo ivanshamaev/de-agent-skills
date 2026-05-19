@@ -213,6 +213,35 @@
 
 ---
 
+## Trino Group Skills (`group_skills/trino_group_skills/`)
+
+20 skills total. All ✅ Done.
+
+| Скилл | Файл | Описание |
+|-------|------|----------|
+| ✅ `trino_lakehouse_platform_architect` | [SKILL.md](group_skills/trino_group_skills/trino_lakehouse_platform_architect/SKILL.md) | Coordinator/worker configs, Iceberg catalog (HMS/Glue), Bronze/Silver/Gold DDL |
+| ✅ `trino_query_optimization` | [SKILL.md](group_skills/trino_group_skills/trino_query_optimization/SKILL.md) | Predicate/aggregation/join pushdown, CBO, broadcast/partitioned joins, dynamic filtering |
+| ✅ `trino_explain_plan_review` | [SKILL.md](group_skills/trino_group_skills/trino_explain_plan_review/SKILL.md) | EXPLAIN syntax, fragment types, EXPLAIN ANALYZE metrics, plan pattern fixes |
+| ✅ `trino_iceberg_best_practices` | [SKILL.md](group_skills/trino_group_skills/trino_iceberg_best_practices/SKILL.md) | DDL, partition transforms, sorted tables, DML/MERGE, maintenance, metadata tables |
+| ✅ `trino_admin_cluster_health` | [SKILL.md](group_skills/trino_group_skills/trino_admin_cluster_health/SKILL.md) | REST health endpoints, JMX Prometheus exporter, alert rules, graceful shutdown |
+| ✅ `trino_memory_and_spill_tuning` | [SKILL.md](group_skills/trino_group_skills/trino_memory_and_spill_tuning/SKILL.md) | Memory architecture, JVM sizing, spill config, FTE exchange manager, OOM diagnosis |
+| ✅ `trino_resource_group_governance` | [SKILL.md](group_skills/trino_group_skills/trino_resource_group_governance/SKILL.md) | Multi-tenant resource groups JSON, scheduling policies, CPU quotas, selector rules |
+| ✅ `trino_dbt_platform` | [SKILL.md](group_skills/trino_group_skills/trino_dbt_platform/SKILL.md) | profiles.yml, all materializations, incremental strategies, Iceberg properties, slim CI |
+| ✅ `trino_dbt_query_performance` | [SKILL.md](group_skills/trino_group_skills/trino_dbt_query_performance/SKILL.md) | Materialization trade-offs, watermark pattern, MERGE vs delete+insert, session properties |
+| ✅ `trino_airflow_orchestration` | [SKILL.md](group_skills/trino_group_skills/trino_airflow_orchestration/SKILL.md) | TrinoOperator/Hook, idempotent patterns, partition-aware incremental DAG, SLA monitoring |
+| ✅ `trino_airflow_lakehouse_pipelines` | [SKILL.md](group_skills/trino_group_skills/trino_airflow_lakehouse_pipelines/SKILL.md) | Full medallion DAG, Iceberg maintenance DAG, dynamic backfill, watermark tracking |
+| ✅ `trino_docker_compose_stack` | [SKILL.md](group_skills/trino_group_skills/trino_docker_compose_stack/SKILL.md) | Full docker-compose (MinIO+HMS+Trino+Airflow+Superset+Prometheus+Grafana) |
+| ✅ `trino_federated_query_architecture` | [SKILL.md](group_skills/trino_group_skills/trino_federated_query_architecture/SKILL.md) | Cross-catalog JOINs, connector performance, materialization decision matrix |
+| ✅ `trino_file_layout_optimization` | [SKILL.md](group_skills/trino_group_skills/trino_file_layout_optimization/SKILL.md) | Parquet vs ORC, target file sizes, sorted files, Bloom filters, small file detection |
+| ✅ `trino_observability_platform` | [SKILL.md](group_skills/trino_group_skills/trino_observability_platform/SKILL.md) | JMX exporter, Prometheus alerts, Grafana panels, slow query listener, OpenTelemetry |
+| ✅ `trino_production_readiness_review` | [SKILL.md](group_skills/trino_group_skills/trino_production_readiness_review/SKILL.md) | 6-section checklist, nginx HA, complete config.properties, Kubernetes Helm values |
+| ✅ `trino_security_and_governance` | [SKILL.md](group_skills/trino_group_skills/trino_security_and_governance/SKILL.md) | TLS, LDAP/OAuth2/JWT, rules.json (masking/row filter), group mapping, OPA Rego |
+| ✅ `trino_cost_optimization` | [SKILL.md](group_skills/trino_group_skills/trino_cost_optimization/SKILL.md) | Query cost analysis SQL, scan reduction, compaction economics, HPA, cost attribution |
+| ✅ `trino_self_healing_platform` | [SKILL.md](group_skills/trino_group_skills/trino_self_healing_platform/SKILL.md) | HungQueryKiller, MemoryPressureReliever, IcebergCompactionAgent, Claude RCA generator |
+| ✅ `trino_modern_data_stack_reference_architecture` | [SKILL.md](group_skills/trino_group_skills/trino_modern_data_stack_reference_architecture/SKILL.md) | End-to-end MDS docker-compose, medallion DDL, all pipeline DAGs, dbt project, K8s Helm |
+
+---
+
 ## StarRocks Group Skills (`group_skills/starrocks_group_skills/`)
 
 42 skills total, organized into 8 groups. All ✅ Done.
